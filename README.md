@@ -1,2 +1,3 @@
-# ld34
-Themes: Growing and Two Button Controls
+ld34
+===========
+[Play on kayzgames.github.io](http://kayzgames.github.io/ld34)
