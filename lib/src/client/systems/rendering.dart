@@ -6,6 +6,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   Mapper<Position> pm;
   Mapper<Size> sm;
   Mapper<Color> cm;
+  Mapper<Orientation> om;
   WebGlViewProjectionMatrixManager vpmm;
 
   Float32List items;
@@ -16,7 +17,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   final int valuesPerItem = 6;
 
   CircleRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Position, Size, Color])) {
+      : super(gl, Aspect.getAspectForAllOf([Position, Size, Color, Orientation])) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
 
@@ -25,6 +26,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     var p = pm[entity];
     var s = sm[entity];
     var c = cm[entity];
+    var o = om[entity];
 
     var itemOffset = index * (verticeCount + 1);
     var offset = index * (verticeCount + 1) * valuesPerItem;
@@ -35,16 +37,17 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     items[offset + 2] = c.r;
     items[offset + 3] = c.g;
     items[offset + 4] = c.b;
-    items[offset + 5] = 0.0;
+    items[offset + 5] = 0.05;
     for (int i = 0; i < verticeCount; i++) {
       items[offset + valuesPerItem + valuesPerItem * i] =
-          p.x + s.radius * sin(2 * PI * i / verticeCount);
+          p.x + s.radius * cos(o.angle + 2 * PI * i / verticeCount);
       items[offset + valuesPerItem + valuesPerItem * i + 1] =
-          p.y + s.radius * cos(2 * PI * i / verticeCount);
+          p.y + s.radius * sin(o.angle + 2 * PI * i / verticeCount);
       items[offset + valuesPerItem + valuesPerItem * i + 2] = c.r;
       items[offset + valuesPerItem + valuesPerItem * i + 3] = c.g;
       items[offset + valuesPerItem + valuesPerItem * i + 4] = c.b;
-      items[offset + valuesPerItem + valuesPerItem * i + 5] = c.a;
+      var alphaFactor = (i - verticeCount ~/ 2).abs() / 16;
+      items[offset + valuesPerItem + valuesPerItem * i + 5] = 0.1 + 0.5 * alphaFactor * alphaFactor;
 
       indices[indicesOffset + i * 3] = itemOffset;
       indices[indicesOffset + i * 3 + 1] = itemOffset + 1 + i;

@@ -23,30 +23,46 @@ class Game extends GameBase {
   void createEntities() {
     addEntity([
       new Position(0.0, 0.0),
-      new Size(10.0),
-      new Color(1.0, 0.0, 0.0, 0.2)
+      new Size(25.0),
+      new Color(1.0, 0.0, 0.0, 0.2),
+      new Thruster(),
+      new Orientation(0.0),
+      new Velocity(5.0, 1.0, 0.0)
     ]);
     addEntity([
       new Position(20.0, 0.0),
       new Size(5.0),
-      new Color(0.0, 1.0, 0.0, 0.2)
+      new Color(0.0, 1.0, 0.0, 0.2),
+      new Orientation(0.0)
     ]);
-    addEntity(
-        [new Position(50.0, 0.0), new Size(20.0), new Color(0.0, 0.0, 1.0, 0.2)]);
-    addEntity(
-        [new Position(100.0, 100.0), new Size(10.0), new Color(1.0, 1.0, 1.0, 0.2)]);
+    addEntity([
+      new Position(50.0, 0.0),
+      new Size(20.0),
+      new Color(0.0, 0.0, 1.0, 0.2),
+      new Orientation(0.0)
+    ]);
+    addEntity([
+      new Position(100.0, 100.0),
+      new Size(10.0),
+      new Color(1.0, 1.0, 1.0, 0.2),
+      new Orientation(0.0)
+    ]);
     addEntity([
       new Position(-20.0, -20.0),
       new Size(7.5),
-      new Color(0.1, 0.1, 0.1, 0.2)
+      new Color(0.1, 0.1, 0.1, 0.2),
+      new Orientation(0.0)
     ]);
   }
 
   Map<int, List<EntitySystem>> getSystems() {
     return {
       GameBase.rendering: [
+        new MovementSystem(),
         new WebGlCanvasCleaningSystem(ctx),
         new CircleRenderingSystem(ctx),
+        new InputHandlingSystem(canvas),
+        new ThrusterHandlingSystem(),
       ],
       GameBase.physics: []
     };
