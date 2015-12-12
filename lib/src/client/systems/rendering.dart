@@ -1,7 +1,5 @@
 part of client;
 
-
-
 class CircleRenderingSystem extends WebGlRenderingSystem {
   Mapper<Position> pm;
   Mapper<Size> sm;
@@ -17,7 +15,8 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   final int valuesPerItem = 6;
 
   CircleRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Position, Size, Color, Orientation])) {
+      : super(gl,
+            Aspect.getAspectForAllOf([Position, Size, Color, Orientation])) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
 
@@ -47,12 +46,25 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
       items[offset + valuesPerItem + valuesPerItem * i + 3] = c.g;
       items[offset + valuesPerItem + valuesPerItem * i + 4] = c.b;
       var alphaFactor = (i - verticeCount ~/ 2).abs() / 16;
-      items[offset + valuesPerItem + valuesPerItem * i + 5] = 0.1 + 0.5 * alphaFactor * alphaFactor;
+      items[offset + valuesPerItem + valuesPerItem * i + 5] =
+          0.1 + 0.5 * alphaFactor * alphaFactor;
 
       indices[indicesOffset + i * 3] = itemOffset;
       indices[indicesOffset + i * 3 + 1] = itemOffset + 1 + i;
       indices[indicesOffset + i * 3 + 2] = itemOffset + 2 + i;
     }
+    var i = (6/16 * verticeCount).truncate();
+    items[offset + valuesPerItem + valuesPerItem * i] =
+        p.x + s.radius * 1.1 * cos(o.angle + 2 * PI * i / verticeCount);
+    items[offset + valuesPerItem + valuesPerItem * i + 1] =
+        p.y + s.radius * 1.1 * sin(o.angle + 2 * PI * i / verticeCount);
+    i = (10/16 * verticeCount).truncate();
+    items[offset + valuesPerItem + valuesPerItem * i] =
+        p.x + s.radius * 1.1 * cos(o.angle + 2 * PI * i / verticeCount);
+    items[offset + valuesPerItem + valuesPerItem * i + 1] =
+        p.y + s.radius * 1.1 * sin(o.angle + 2 * PI * i / verticeCount);
+
+
     indices[indicesOffset + verticeCount * 3 - 1] = itemOffset + 1;
   }
 
@@ -76,4 +88,56 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
 
   @override
   String get fShaderFile => 'PositionRenderingSystem';
+}
+
+class ParticleRenderingSystem extends WebGlRenderingSystem {
+  Mapper<Position> pm;
+  Mapper<Color> cm;
+  WebGlViewProjectionMatrixManager vpmm;
+
+  Float32List positions;
+  Float32List colors;
+
+  ParticleRenderingSystem(RenderingContext gl)
+      : super(
+            gl, Aspect.getAspectForAllOf([Position, ThrusterParticle, Color]));
+
+  @override
+  void processEntity(int index, Entity entity) {
+    var p = pm[entity];
+    var c = cm[entity];
+
+    var pOffset = index * 2;
+    var cOffset = index * 4;
+
+    positions[pOffset] = p.x;
+    positions[pOffset + 1] = p.y;
+
+    colors[cOffset] = c.r;
+    colors[cOffset + 1] = c.g;
+    colors[cOffset + 2] = c.b;
+    colors[cOffset + 3] = c.a;
+  }
+
+  @override
+  void render(int length) {
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
+        false, vpmm.create2dViewProjectionMatrix().storage);
+
+    buffer('aPosition', positions, 2);
+    buffer('aColor', colors, 4);
+
+    gl.drawArrays(POINTS, 0, length);
+  }
+
+  @override
+  void updateLength(int length) {
+    positions = new Float32List(length * 2);
+    colors = new Float32List(length * 4);
+  }
+
+  @override
+  String get vShaderFile => 'ParticleRenderingSystem';
+  @override
+  String get fShaderFile => 'ParticleRenderingSystem';
 }

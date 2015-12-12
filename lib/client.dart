@@ -21,38 +21,16 @@ class Game extends GameBase {
   }
 
   void createEntities() {
-    addEntity([
-      new Position(0.0, 0.0),
-      new Size(25.0),
-      new Color(1.0, 0.0, 0.0, 0.2),
-      new Thruster(),
-      new Orientation(0.0),
-      new Velocity(5.0, 1.0, 0.0)
-    ]);
-    addEntity([
-      new Position(20.0, 0.0),
-      new Size(5.0),
-      new Color(0.0, 1.0, 0.0, 0.2),
-      new Orientation(0.0)
-    ]);
-    addEntity([
-      new Position(50.0, 0.0),
-      new Size(20.0),
-      new Color(0.0, 0.0, 1.0, 0.2),
-      new Orientation(0.0)
-    ]);
-    addEntity([
-      new Position(100.0, 100.0),
-      new Size(10.0),
-      new Color(1.0, 1.0, 1.0, 0.2),
-      new Orientation(0.0)
-    ]);
-    addEntity([
-      new Position(-20.0, -20.0),
-      new Size(7.5),
-      new Color(0.1, 0.1, 0.1, 0.2),
-      new Orientation(0.0)
-    ]);
+    for (int i = 0; i < 50; i++) {
+      addEntity([
+        new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
+        new Size(5.0 + random.nextDouble() * 50),
+        new Color.fromHsl(random.nextDouble(), 1.0, 0.5, 0.2),
+        new Thruster(),
+        new Orientation(0.0),
+        new Velocity(0.0, 0.0, 0.0)
+      ]);
+    }
   }
 
   Map<int, List<EntitySystem>> getSystems() {
@@ -60,9 +38,13 @@ class Game extends GameBase {
       GameBase.rendering: [
         new MovementSystem(),
         new WebGlCanvasCleaningSystem(ctx),
+        new ThrusterParticleColorModificationSystem(),
+        new ParticleRenderingSystem(ctx),
         new CircleRenderingSystem(ctx),
         new InputHandlingSystem(canvas),
         new ThrusterHandlingSystem(),
+        new ExpirationSystem(),
+        new ThrusterParticleEmissionSystem(),
       ],
       GameBase.physics: []
     };

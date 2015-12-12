@@ -13,3 +13,6 @@ transformers:
 - dartemis_transformer:
     additionalLibraries:
     - gamedev_helpers/gamedev_helpers.dart
+dependency_overrides:
+  dartemis:
+    path: ../dartemis
