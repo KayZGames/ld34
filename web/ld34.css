@@ -1,19 +1,13 @@
-body {
-  text-align: center;
+* {
+    margin: 0;
+    padding: 0;
 }
 
-#gamecontainer {
-  position: relative;
-  display: inline-block;
-  width: 800px;
-  height: 600px;
-  margin: auto;
+html, body {
+    width: 100%;
+    height: 100%;
 }
 
 canvas {
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  width: 800px;
-  height: 600px;
+    display: block;
 }
