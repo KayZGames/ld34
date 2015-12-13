@@ -137,3 +137,31 @@ class ExpirationSystem extends EntityProcessingSystem {
     }
   }
 }
+
+class HeartbeatSystem extends EntityProcessingSystem {
+  TagManager tm;
+  Mapper<Color> cm;
+  Mapper<Size> sm;
+
+  double playerRadius;
+
+  HeartbeatSystem() : super(Aspect.getAspectForAllOf([Color, Size]).exclude([Particle]));
+
+  @override
+  void begin() {
+    var playerEntity = tm.getEntity(playerTag);
+    playerRadius = sm[playerEntity].realRadius;
+  }
+
+  @override
+  void processEntity(Entity entity) {
+    var c = cm[entity];
+    var s = sm[entity];
+
+    var factor = sin(time * 5 * playerRadius / s.realRadius);
+    factor = 1.0 + 0.025 * max(-0.2, factor * factor * factor);
+    c.setLightness(c.l * factor * 1.05);
+    c.a = c.realAlpha - 0.1 * factor;
+    s.radius = s.realRadius * factor;
+  }
+}

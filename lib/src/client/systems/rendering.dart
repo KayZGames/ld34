@@ -45,7 +45,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     items[offset + 2] = c.r;
     items[offset + 3] = c.g;
     items[offset + 4] = c.b;
-    items[offset + 5] = 0.05;
+    items[offset + 5] = c.a / 2;
     for (int i = 0; i < verticeCount; i++) {
       items[offset + valuesPerItem + valuesPerItem * i] =
           p.x + s.radius * cos(o.angle + 2 * PI * i / verticeCount);
@@ -56,7 +56,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
       items[offset + valuesPerItem + valuesPerItem * i + 4] = c.b;
       var alphaFactor = (i - verticeCount ~/ 2).abs() / 16;
       items[offset + valuesPerItem + valuesPerItem * i + 5] =
-          0.1 + 0.5 * alphaFactor * alphaFactor;
+          c.a + 0.5 * alphaFactor * alphaFactor;
 
       indices[indicesOffset + i * 3] = itemOffset;
       indices[indicesOffset + i * 3 + 1] = itemOffset + 1 + i;

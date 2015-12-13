@@ -26,7 +26,7 @@ class Game extends GameBase {
     var player = addEntity([
       new Position(0.0, 0.0),
       new Size(20.0),
-      new Color.fromHsl(random.nextDouble(), 1.0, 0.6, 0.4),
+      new Color.fromHsl(random.nextDouble(), 0.9, 0.6, 0.4),
       new Thruster(),
       new Orientation(0.0),
       new Velocity(0.0, 0.0, 0.0),
@@ -37,7 +37,7 @@ class Game extends GameBase {
       addEntity([
         new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
         new Size(5.0 + random.nextDouble() * 50),
-        new Color.fromHsl(random.nextDouble(), 1.0, 0.5, 0.2),
+        new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
         new Thruster(),
         new Orientation(0.0),
         new Velocity(0.0, 0.0, 0.0)
@@ -56,6 +56,7 @@ class Game extends GameBase {
     return {
       GameBase.rendering: [
         new MovementSystem(),
+        new HeartbeatSystem(),
         new WebGlCanvasCleaningSystem(ctx),
         new ThrusterParticleColorModificationSystem(),
         new ParticleRenderingSystem(ctx),
