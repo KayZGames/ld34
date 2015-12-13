@@ -33,16 +33,30 @@ class Game extends GameBase {
       new Player()
     ]);
     tm.register(player, playerTag);
+
+    for (int i = 0; i < 50; i++) {
+      addEntity([
+        new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
+        new Size(1.0 + random.nextDouble() * 10.0),
+        new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
+        new Food(),
+        new Orientation(0.0),
+        new Velocity(0.0, 0.0, 0.0)
+      ]);
+    }
+
     for (int i = 0; i < 50; i++) {
       addEntity([
         new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
         new Size(5.0 + random.nextDouble() * 50),
         new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
         new Thruster(),
+        new Food(),
         new Orientation(0.0),
         new Velocity(0.0, 0.0, 0.0)
       ]);
     }
+
     for (int i = 0; i < 1000; i++) {
       world.createAndAddEntity([
         new Position(-1000.0 + random.nextDouble() * 2000, -1000.0 + random.nextDouble() * 2000),
@@ -59,11 +73,16 @@ class Game extends GameBase {
         new HeartbeatSystem(),
         new WebGlCanvasCleaningSystem(ctx),
         new ThrusterParticleColorModificationSystem(),
+        new FoodRenderingSystem(ctx),
         new ParticleRenderingSystem(ctx),
         new AiRenderingSystem(ctx),
         new PlayerRenderingSystem(ctx),
         new InputHandlingSystem(canvas),
         new ThrusterHandlingSystem(),
+        new EatenByVelocitySystem(),
+        new FoodCollectionSystem(),
+        new StillBeingEatenCheckerSystem(),
+        new DigestiveSystem(),
         new ExpirationSystem(),
         new ThrusterParticleEmissionSystem(),
       ],

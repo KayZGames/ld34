@@ -5,7 +5,7 @@ class ThrusterHandlingSystem extends EntityProcessingSystem {
   Mapper<Thruster> tm;
   Mapper<Orientation> om;
 
-  final double speed = 10.0;
+  final double speed = 20.0;
 
   ThrusterHandlingSystem()
       : super(Aspect.getAspectForAllOf([Velocity, Thruster, Orientation]));
@@ -34,6 +34,35 @@ class ThrusterHandlingSystem extends EntityProcessingSystem {
       v.rotational += world.delta * 5;
     }
     o.angle += v.rotational * world.delta;
+  }
+}
+
+class EatenByVelocitySystem extends EntityProcessingSystem {
+  Mapper<Velocity> vm;
+  Mapper<EatenBy> ebm;
+
+  EatenByVelocitySystem()
+      : super(Aspect.getAspectForAllOf([EatenBy, Velocity]));
+
+  @override
+  void processEntity(Entity entity) {
+    var v = vm[entity];
+    var eb = ebm[entity];
+    var veb = vm[eb.eater];
+
+    var currentX = v.value * cos(v.angle);
+    var currentY = v.value * sin(v.angle);
+
+    var eaterX = veb.value * cos(veb.angle);
+    var eaterY = veb.value * sin(veb.angle);
+
+    var factor = world.delta * 0.8;
+
+    var nextX = (1.0 - factor) * currentX + factor * eaterX;
+    var nextY = (1.0 - factor) * currentY + factor * eaterY;
+
+    v.angle = atan2(nextY, nextX);
+    v.value = nextX / cos(v.angle);
   }
 }
 
@@ -82,12 +111,17 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     }
   }
 
-  void spawnThrusterParticles(Position p, Size s, Velocity v, double thrusterAngle, Orientation o) {
+  void spawnThrusterParticles(
+      Position p, Size s, Velocity v, double thrusterAngle, Orientation o) {
     var x = p.x + s.radius * 1.1 * cos(thrusterAngle);
     var y = p.y + s.radius * 1.1 * sin(thrusterAngle);
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
-    var vx = v.value * cos(v.angle) + 25.0 * cos(o.angle - PI) + thrusterSpeed * cos(thrusterAngle + PI/2);
-    var vy = v.value * sin(v.angle) + 25.0 * sin(o.angle - PI) + thrusterSpeed * sin(thrusterAngle + PI/2);
+    var vx = v.value * cos(v.angle) +
+        25.0 * cos(o.angle - PI) +
+        thrusterSpeed * cos(thrusterAngle + PI / 2);
+    var vy = v.value * sin(v.angle) +
+        25.0 * sin(o.angle - PI) +
+        thrusterSpeed * sin(thrusterAngle + PI / 2);
 
     var velocityAngle = atan2(vy, vx);
     var speed = vx / cos(velocityAngle);
@@ -98,7 +132,8 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
         new ThrusterParticle(),
         new Color(1.0, 1.0, 0.0, 1.0),
         new Lifetime(0.5 + random.nextDouble()),
-        new Velocity(speed * 0.9 + random.nextDouble() * 0.2, velocityAngle - PI/16 + random.nextDouble() * PI/8, 0.0)
+        new Velocity(speed * 0.9 + random.nextDouble() * 0.2,
+            velocityAngle - PI / 16 + random.nextDouble() * PI / 8, 0.0)
       ]);
     }
   }
@@ -145,7 +180,8 @@ class HeartbeatSystem extends EntityProcessingSystem {
 
   double playerRadius;
 
-  HeartbeatSystem() : super(Aspect.getAspectForAllOf([Color, Size]).exclude([Particle]));
+  HeartbeatSystem()
+      : super(Aspect.getAspectForAllOf([Color, Size]).exclude([Particle]));
 
   @override
   void begin() {
@@ -163,5 +199,117 @@ class HeartbeatSystem extends EntityProcessingSystem {
     c.setLightness(c.l * factor * 1.05);
     c.a = c.realAlpha - 0.1 * factor;
     s.radius = s.realRadius * factor;
+  }
+}
+
+class FoodCollectionSystem extends EntitySystem {
+  TagManager tm;
+  Mapper<Position> pm;
+  Mapper<Size> sm;
+
+  FoodCollectionSystem()
+      : super(Aspect
+            .getAspectForAllOf([Food, Position, Size]).exclude([EatenBy]));
+
+  @override
+  void processEntities(Iterable<Entity> entities) {
+    var playerEntity = tm.getEntity(playerTag);
+    var playerPos = pm[playerEntity];
+    var playerSize = sm[playerEntity];
+    entities.where((food) {
+      var foodPos = pm[food];
+      var foodSize = sm[food];
+      var distX = playerPos.x - foodPos.x;
+      var distY = playerPos.y - foodPos.y;
+      return sqrt(distX * distX + distY * distY) <
+          playerSize.radius - foodSize.radius;
+    }).forEach((food) {
+      food
+        ..addComponent(new EatenBy(playerEntity))
+        ..changedInWorld();
+    });
+  }
+
+  @override
+  bool checkProcessing() => true;
+}
+
+class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
+  Mapper<EatenBy> ebm;
+  Mapper<Position> pm;
+  Mapper<Size> sm;
+
+  bool changes = false;
+
+  StillBeingEatenCheckerSystem()
+      : super(Aspect.getAspectForAllOf([EatenBy, Position, Size]));
+
+  @override
+  void processEntity(Entity entity) {
+    var p = pm[entity];
+    var s = sm[entity];
+    var eb = ebm[entity];
+    var ep = pm[eb.eater];
+    var es = sm[eb.eater];
+
+    var distX = ep.x - p.x;
+    var distY = ep.y - p.y;
+
+    if (sqrt(distX * distX + distY * distY) > es.radius - s.radius) {
+      entity
+        ..removeComponent(EatenBy)
+        ..changedInWorld();
+      changes = true;
+    }
+  }
+
+  @override
+  void end() {
+    if (changes) {
+      world.processEntityChanges();
+      changes = false;
+    }
+  }
+}
+
+class DigestiveSystem extends EntityProcessingSystem {
+  Mapper<EatenBy> ebm;
+  Mapper<Size> sm;
+  Mapper<Position> pm;
+  Mapper<Color> cm;
+
+  DigestiveSystem()
+      : super(Aspect.getAspectForAllOf([EatenBy, Size, Color, Position]));
+
+  @override
+  void processEntity(Entity entity) {
+    var s = sm[entity];
+    var eb = ebm[entity];
+    var es = sm[eb.eater];
+
+    var remaining = s.realRadius - world.delta * es.realRadius / 20;
+    var eatenArea = PI * s.realRadius * s.realRadius;
+    if (remaining > 0.0) {
+      eatenArea -= PI * remaining * remaining;
+      s.realRadius = remaining;
+      var p = pm[entity];
+      var ec = cm[eb.eater];
+      var hsl = rgbToHsl(ec.r, ec.g, ec.b);
+      for (int i = 0; i < s.realRadius; i++) {
+        var angle = random.nextDouble() * 2 * PI;
+        world.createAndAddEntity([
+          new Particle(),
+          new Position(
+              p.x + s.realRadius * cos(angle), p.y + s.realRadius * sin(angle)),
+          new Color.fromHsl(hsl[0], hsl[1] + 0.1, hsl[2] + 0.1, 1.0),
+          new Lifetime(0.1)
+        ]);
+      }
+    } else {
+      entity.deleteFromWorld();
+    }
+    var eaterArea = PI * es.realRadius * es.realRadius + eatenArea;
+    es.realRadius = sqrt(eaterArea / PI);
+    print(es.realRadius);
   }
 }

@@ -7,7 +7,21 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
 
 class AiRenderingSystem extends CircleRenderingSystem {
   AiRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getEmpty().exclude([Player]));
+      : super(gl, Aspect.getEmpty().exclude([Player, Food]));
+}
+
+class FoodRenderingSystem extends CircleRenderingSystem {
+  FoodRenderingSystem(RenderingContext gl)
+      : super(gl, Aspect.getAspectForAllOf([Food]));
+
+  void processEntity(int index, Entity entity) {
+    super.processEntity(index, entity);
+    var offset = index * (verticeCount + 1) * valuesPerItem;
+    var c = cm[entity];
+    items[offset + 5] = c.a;
+  }
+
+
 }
 
 class CircleRenderingSystem extends WebGlRenderingSystem {

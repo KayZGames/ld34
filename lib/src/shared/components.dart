@@ -63,10 +63,17 @@ class ThrusterParticle extends Component {}
 
 class Player extends Component {}
 
+class Food extends Component {}
+
 class Lifetime extends Component {
   double timeLeft, timeMax;
 
   Lifetime(double timeMax)
       : timeLeft = timeMax,
         timeMax = timeMax;
+}
+
+class EatenBy extends Component {
+  Entity eater;
+  EatenBy(this.eater);
 }
