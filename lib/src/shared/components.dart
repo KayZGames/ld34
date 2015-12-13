@@ -65,6 +65,11 @@ class Player extends Component {}
 
 class Food extends Component {}
 
+class Growing extends Component {
+  double targetRadius, speed;
+  Growing(this.targetRadius, this.speed);
+}
+
 class Lifetime extends Component {
   double timeLeft, timeMax;
 

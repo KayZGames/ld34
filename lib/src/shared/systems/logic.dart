@@ -226,6 +226,7 @@ class FoodCollectionSystem extends EntitySystem {
     }).forEach((food) {
       food
         ..addComponent(new EatenBy(playerEntity))
+        ..removeComponent(Growing)
         ..changedInWorld();
     });
   }
@@ -311,5 +312,53 @@ class DigestiveSystem extends EntityProcessingSystem {
     var eaterArea = PI * es.realRadius * es.realRadius + eatenArea;
     es.realRadius = sqrt(eaterArea / PI);
     print(es.realRadius);
+  }
+}
+
+class FoodGrowingSystem extends EntityProcessingSystem {
+  Mapper<Size> sm;
+  Mapper<Growing> gm;
+  TagManager tm;
+  Mapper<Position> pm;
+
+  double totalFood = 0.0;
+
+  FoodGrowingSystem()
+      : super(
+            Aspect.getAspectForAllOf([Food, Size, Growing]).exclude([EatenBy]));
+
+  @override
+  void processEntity(Entity entity) {
+    var s = sm[entity];
+    var g = gm[entity];
+
+    var currentFood = PI * s.realRadius * s.realRadius + world.delta * g.speed;
+    totalFood += currentFood;
+
+    s.realRadius = sqrt(currentFood / PI);
+
+    if (s.realRadius >= g.targetRadius) {
+      entity
+        ..removeComponent(Growing)
+        ..changedInWorld();
+    }
+  }
+
+  @override
+  void end() {
+    if (totalFood < 250.0) {
+      var p = pm[tm.getEntity(playerTag)];
+      world.createAndAddEntity([
+        new Position(p.x - 1500.0 + random.nextDouble() * 3000,
+            p.y - 1500.0 + random.nextDouble() * 3000),
+        new Size(0.1),
+        new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
+        new Food(),
+        new Growing(1.0 + random.nextDouble() * 10.0, 1.0 + random.nextDouble() * 4),
+        new Orientation(0.0),
+        new Velocity(0.0, 0.0, 0.0)
+      ]);
+    }
+    totalFood = 0.0;
   }
 }

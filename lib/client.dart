@@ -37,17 +37,6 @@ class Game extends GameBase {
     for (int i = 0; i < 50; i++) {
       addEntity([
         new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
-        new Size(1.0 + random.nextDouble() * 10.0),
-        new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
-        new Food(),
-        new Orientation(0.0),
-        new Velocity(0.0, 0.0, 0.0)
-      ]);
-    }
-
-    for (int i = 0; i < 50; i++) {
-      addEntity([
-        new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
         new Size(5.0 + random.nextDouble() * 50),
         new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
         new Thruster(),
@@ -80,6 +69,7 @@ class Game extends GameBase {
         new InputHandlingSystem(canvas),
         new ThrusterHandlingSystem(),
         new EatenByVelocitySystem(),
+        new FoodGrowingSystem(),
         new FoodCollectionSystem(),
         new StillBeingEatenCheckerSystem(),
         new DigestiveSystem(),

@@ -20,8 +20,6 @@ class FoodRenderingSystem extends CircleRenderingSystem {
     var c = cm[entity];
     items[offset + 5] = c.a;
   }
-
-
 }
 
 class CircleRenderingSystem extends WebGlRenderingSystem {
@@ -116,6 +114,7 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
   Mapper<Position> pm;
   Mapper<Color> cm;
   WebGlViewProjectionMatrixManager vpmm;
+  TagManager tm;
 
   Float32List positions;
   Float32List colors;
@@ -144,6 +143,8 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
   void render(int length) {
     gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
         false, vpmm.create2dViewProjectionMatrix().storage);
+    var p = pm[tm.getEntity(playerTag)];
+    gl.uniform2f(gl.getUniformLocation(program, 'uPlayerPos'), p.x, p.y);
 
     buffer('aPosition', positions, 2);
     buffer('aColor', colors, 4);
