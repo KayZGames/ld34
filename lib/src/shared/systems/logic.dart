@@ -320,6 +320,7 @@ class FoodGrowingSystem extends EntityProcessingSystem {
   Mapper<Growing> gm;
   TagManager tm;
   Mapper<Position> pm;
+  GameStateManager gsm;
 
   double totalFood = 0.0;
 
@@ -346,19 +347,73 @@ class FoodGrowingSystem extends EntityProcessingSystem {
 
   @override
   void end() {
-    if (totalFood < 250.0) {
+    if (totalFood < 500.0) {
       var p = pm[tm.getEntity(playerTag)];
       world.createAndAddEntity([
-        new Position(p.x - 1500.0 + random.nextDouble() * 3000,
-            p.y - 1500.0 + random.nextDouble() * 3000),
+        new Position(p.x - gsm.width + random.nextDouble() * gsm.width * 2,
+            p.y - gsm.height + random.nextDouble() * gsm.height * 2),
         new Size(0.1),
         new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
         new Food(),
-        new Growing(1.0 + random.nextDouble() * 10.0, 1.0 + random.nextDouble() * 4),
+        new Growing(
+            1.0 + random.nextDouble() * 10.0, 1.0 + random.nextDouble() * 4),
         new Orientation(0.0),
         new Velocity(0.0, 0.0, 0.0)
       ]);
     }
     totalFood = 0.0;
   }
+}
+
+class DamacreatSpawner extends VoidEntitySystem {
+  TagManager tm;
+  GroupManager gm;
+  Mapper<Position> pm;
+  GameStateManager gsm;
+
+  @override
+  void processSystem() {
+    var p = pm[tm.getEntity(playerTag)];
+    var x = (gsm.width / 2 * (1.5 + random.nextDouble())) *
+        (random.nextBool() ? 1 : -1);
+    var y = (gsm.height / 2 * (1.5 + random.nextDouble())) *
+        (random.nextBool() ? 1 : -1);
+    var damacreat = world.createAndAddEntity([
+      new Position(p.x + x, p.y + y),
+      new Size(5.0 + random.nextDouble() * 50),
+      new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
+      new Food(),
+      new Ai(),
+      new Orientation(0.0),
+      new Velocity(random.nextDouble() * 25.0, 2 * PI * random.nextDouble(),
+          (random.nextBool() ? random.nextDouble() * 0.1 : 0.0))
+    ]);
+    gm.add(damacreat, damacreatGroup);
+    print('${p.x + x} ${p.y + y}');
+  }
+
+  bool checkProcessing() => gm.getEntities(damacreatGroup).length < 500;
+}
+
+class FarAwayEntityDestructionSystem extends EntitySystem {
+  TagManager tm;
+  Mapper<Position> pm;
+  GameStateManager gsm;
+
+  FarAwayEntityDestructionSystem()
+      : super(
+            Aspect.getAspectForAllOf([Position]).exclude([Particle, Lifetime]));
+
+  @override
+  void processEntities(Iterable<Entity> entities) {
+    var playerPos = pm[tm.getEntity(playerTag)];
+    entities.where((entity) {
+      var p = pm[entity];
+      return (playerPos.x - p.x).abs() > gsm.width * 3 ||
+          (playerPos.y - p.y).abs() > gsm.height * 3;
+    }).forEach((entity) => entity.deleteFromWorld());
+  }
+
+  @override
+  bool checkProcessing() => true;
 }

@@ -63,6 +63,8 @@ class ThrusterParticle extends Component {}
 
 class Player extends Component {}
 
+class Ai extends Component {}
+
 class Food extends Component {}
 
 class Growing extends Component {

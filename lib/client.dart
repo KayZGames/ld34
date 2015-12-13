@@ -16,6 +16,7 @@ class Game extends GameBase {
     world.addManager(new GameStateManager());
     world.addManager(new WebGlViewProjectionMatrixManager());
     world.addManager(new TagManager());
+    world.addManager(new GroupManager());
     handleResize(window.innerWidth, window.innerHeight);
     window.onResize
         .listen((_) => handleResize(window.innerWidth, window.innerHeight));
@@ -33,18 +34,6 @@ class Game extends GameBase {
       new Player()
     ]);
     tm.register(player, playerTag);
-
-    for (int i = 0; i < 50; i++) {
-      addEntity([
-        new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
-        new Size(5.0 + random.nextDouble() * 50),
-        new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
-        new Thruster(),
-        new Food(),
-        new Orientation(0.0),
-        new Velocity(0.0, 0.0, 0.0)
-      ]);
-    }
 
     for (int i = 0; i < 1000; i++) {
       world.createAndAddEntity([
@@ -75,6 +64,8 @@ class Game extends GameBase {
         new DigestiveSystem(),
         new ExpirationSystem(),
         new ThrusterParticleEmissionSystem(),
+        new FarAwayEntityDestructionSystem(),
+        new DamacreatSpawner(),
       ],
       GameBase.physics: []
     };

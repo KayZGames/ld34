@@ -7,12 +7,12 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
 
 class AiRenderingSystem extends CircleRenderingSystem {
   AiRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getEmpty().exclude([Player, Food]));
+      : super(gl, Aspect.getAspectForAllOf([Ai]));
 }
 
 class FoodRenderingSystem extends CircleRenderingSystem {
   FoodRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Food]));
+      : super(gl, Aspect.getAspectForAllOf([Food]).exclude([Ai]));
 
   void processEntity(int index, Entity entity) {
     super.processEntity(index, entity);
