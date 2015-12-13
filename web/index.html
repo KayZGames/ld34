@@ -1,18 +1,40 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title></title>
+    <title>Ludum Dare 34: Damacreat</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link type="text/css" rel="stylesheet" href="ld34.css">
-  </head>
-  <body>
-    <div id="gamecontainer">
-      <canvas id="game" width="100%" height="100%"></canvas>
+</head>
+<body>
+<div id="gamecontainer">
+    <div id="story">
+        <p>
+            You are one of many. You are a Dark Matter Creature, a Damacreat. One of the lowest life forms existing in
+            the vast space of Dark Matter. You have just evolved your first pair of thrusters. Once you learn how to
+            navigate, you will have a better chance at surviving in the hostile environment that is Dark Matter.
+        </p>
+        <p>
+            It's eat or be eaten. Survive! Grow! Dominate!
+        </p>
+        <p>
+            <button id="startGame" title="Start Game">Start Game</button>
+        </p>
+        <p>
+        <h2>Two Button Controls</h2>
+        <ul>
+            <li>To turn right, fire your left thruster with F or left mouse button</li>
+            <li>To turn left, Fire your right thruster with J or right mouse button</li>
+            <li>To move forward, Fire both thrusters at the same time</li>
+            <li>If that's too hard, turn your mouse or keyboard by 180°</li>
+        </ul>
+        </p>
     </div>
-    <script type="application/dart" src="ld34.dart"></script>
-    <script src="packages/browser/dart.js"></script>
-  </body>
+    <canvas id="game" width="100%" height="100%"></canvas>
+</div>
+<script type="application/dart" src="ld34.dart"></script>
+<script src="packages/browser/dart.js"></script>
+</body>
 </html>

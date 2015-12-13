@@ -128,7 +128,6 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
 
   @override
   void render(int length) {
-    print(length);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
         false, vpmm.create2dViewProjectionMatrix().storage);
 
