@@ -37,7 +37,9 @@ class Velocity extends Component {
   Velocity(this.value, this.angle, this.rotational);
 }
 
+class Particle extends Component {}
 class ThrusterParticle extends Component {}
+class Player extends Component {}
 
 class Lifetime extends Component {
   double timeLeft, timeMax;

@@ -4,3 +4,6 @@ part 'src/shared/components.dart';
 //part 'src/shared/systems/name.dart';
 part 'src/shared/systems/logic.dart';
 part 'src/shared/managers.dart';
+
+
+const String playerTag = 'player';

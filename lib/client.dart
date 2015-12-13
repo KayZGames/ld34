@@ -15,12 +15,24 @@ class Game extends GameBase {
   Game() : super.noAssets('ld34', '#game', 800, 600, webgl: true) {
     world.addManager(new GameStateManager());
     world.addManager(new WebGlViewProjectionMatrixManager());
+    world.addManager(new TagManager());
     handleResize(window.innerWidth, window.innerHeight);
     window.onResize
         .listen((_) => handleResize(window.innerWidth, window.innerHeight));
   }
 
   void createEntities() {
+    var tm = world.getManager(TagManager) as TagManager;
+    var player = addEntity([
+      new Position(0.0, 0.0),
+      new Size(20.0),
+      new Color.fromHsl(random.nextDouble(), 1.0, 0.6, 0.4),
+      new Thruster(),
+      new Orientation(0.0),
+      new Velocity(0.0, 0.0, 0.0),
+      new Player()
+    ]);
+    tm.register(player, playerTag);
     for (int i = 0; i < 50; i++) {
       addEntity([
         new Position(-400.0 + random.nextDouble() * 800, -300.0 + random.nextDouble() * 600),
@@ -29,6 +41,13 @@ class Game extends GameBase {
         new Thruster(),
         new Orientation(0.0),
         new Velocity(0.0, 0.0, 0.0)
+      ]);
+    }
+    for (int i = 0; i < 1000; i++) {
+      world.createAndAddEntity([
+        new Position(-1000.0 + random.nextDouble() * 2000, -1000.0 + random.nextDouble() * 2000),
+        new Particle(),
+        new Color.fromHsl(random.nextDouble(), 1.0, 1.0, 1.0),
       ]);
     }
   }
@@ -40,7 +59,8 @@ class Game extends GameBase {
         new WebGlCanvasCleaningSystem(ctx),
         new ThrusterParticleColorModificationSystem(),
         new ParticleRenderingSystem(ctx),
-        new CircleRenderingSystem(ctx),
+        new AiRenderingSystem(ctx),
+        new PlayerRenderingSystem(ctx),
         new InputHandlingSystem(canvas),
         new ThrusterHandlingSystem(),
         new ExpirationSystem(),

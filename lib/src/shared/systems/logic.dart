@@ -94,6 +94,7 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     for (int i = 0; i < 5; i++) {
       world.createAndAddEntity([
         new Position(x, y),
+        new Particle(),
         new ThrusterParticle(),
         new Color(1.0, 1.0, 0.0, 1.0),
         new Lifetime(0.5 + random.nextDouble()),

@@ -5,9 +5,13 @@ class GameStateManager extends Manager {
 }
 
 class WebGlViewProjectionMatrixManager extends Manager {
+  Mapper<Position> pm;
   GameStateManager gsm;
+  TagManager tm;
 
   Matrix4 create2dViewProjectionMatrix() {
+    var playerEntity = tm.getEntity(playerTag);
+    var p = pm[playerEntity];
     var angle = 0.0;
     var viewMatrix = new Matrix4.identity();
     var projMatrix = new Matrix4.identity();
@@ -27,7 +31,7 @@ class WebGlViewProjectionMatrixManager extends Manager {
     } else {
       height = width / factor;
     }
-    setOrthographicMatrix(twodOrthographicMatrix, -width/2, width/2, -height/2, height/2, 250, -250);
+    setOrthographicMatrix(twodOrthographicMatrix, p.x - width/2, p.x + width/2, p.y - height/2, p.y + height/2, 250, -250);
 
 //  return threedViewProjextionMatrix * camera.three + twodOrthographicMatrix * camera.two;
     return twodOrthographicMatrix;

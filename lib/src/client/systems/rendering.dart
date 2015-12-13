@@ -1,5 +1,15 @@
 part of client;
 
+class PlayerRenderingSystem extends CircleRenderingSystem {
+  PlayerRenderingSystem(RenderingContext gl)
+      : super(gl, Aspect.getAspectForAllOf([Player]));
+}
+
+class AiRenderingSystem extends CircleRenderingSystem {
+  AiRenderingSystem(RenderingContext gl)
+      : super(gl, Aspect.getEmpty().exclude([Player]));
+}
+
 class CircleRenderingSystem extends WebGlRenderingSystem {
   Mapper<Position> pm;
   Mapper<Size> sm;
@@ -14,9 +24,8 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   final int verticeCount = 32;
   final int valuesPerItem = 6;
 
-  CircleRenderingSystem(RenderingContext gl)
-      : super(gl,
-            Aspect.getAspectForAllOf([Position, Size, Color, Orientation])) {
+  CircleRenderingSystem(RenderingContext gl, Aspect aspect)
+      : super(gl, aspect.allOf([Position, Size, Color, Orientation])) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
 
@@ -53,17 +62,16 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
       indices[indicesOffset + i * 3 + 1] = itemOffset + 1 + i;
       indices[indicesOffset + i * 3 + 2] = itemOffset + 2 + i;
     }
-    var i = (6/16 * verticeCount).truncate();
+    var i = (6 / 16 * verticeCount).truncate();
     items[offset + valuesPerItem + valuesPerItem * i] =
         p.x + s.radius * 1.1 * cos(o.angle + 2 * PI * i / verticeCount);
     items[offset + valuesPerItem + valuesPerItem * i + 1] =
         p.y + s.radius * 1.1 * sin(o.angle + 2 * PI * i / verticeCount);
-    i = (10/16 * verticeCount).truncate();
+    i = (10 / 16 * verticeCount).truncate();
     items[offset + valuesPerItem + valuesPerItem * i] =
         p.x + s.radius * 1.1 * cos(o.angle + 2 * PI * i / verticeCount);
     items[offset + valuesPerItem + valuesPerItem * i + 1] =
         p.y + s.radius * 1.1 * sin(o.angle + 2 * PI * i / verticeCount);
-
 
     indices[indicesOffset + verticeCount * 3 - 1] = itemOffset + 1;
   }
@@ -99,8 +107,7 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
   Float32List colors;
 
   ParticleRenderingSystem(RenderingContext gl)
-      : super(
-            gl, Aspect.getAspectForAllOf([Position, ThrusterParticle, Color]));
+      : super(gl, Aspect.getAspectForAllOf([Position, Particle, Color]));
 
   @override
   void processEntity(int index, Entity entity) {
@@ -121,6 +128,7 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
 
   @override
   void render(int length) {
+    print(length);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
         false, vpmm.create2dViewProjectionMatrix().storage);
 

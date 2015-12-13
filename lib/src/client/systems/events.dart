@@ -6,7 +6,7 @@ class InputHandlingSystem extends GenericInputHandlingSystem {
   Mapper<Thruster> tm;
 
   bool leftClick, rightClick;
-  InputHandlingSystem(this.canvas) : super(Aspect.getAspectForAllOf([Thruster]));
+  InputHandlingSystem(this.canvas) : super(Aspect.getAspectForAllOf([Thruster, Player]));
 
   @override
   void initialize() {
