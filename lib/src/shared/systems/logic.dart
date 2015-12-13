@@ -88,10 +88,11 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
   Mapper<Thruster> tm;
   Mapper<Velocity> vm;
   Mapper<Size> sm;
+  Mapper<Color> cm;
 
   ThrusterParticleEmissionSystem()
       : super(Aspect.getAspectForAllOf(
-            [Position, Orientation, Thruster, Velocity, Size]));
+            [Position, Orientation, Thruster, Velocity, Size, Color]));
 
   @override
   void processEntity(Entity entity) {
@@ -100,40 +101,47 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     var t = tm[entity];
     var v = vm[entity];
     var s = sm[entity];
+    var c = cm[entity];
 
     var leftThrusterAngle = o.angle + 6 / 8 * PI;
     var rightThrusterAngle = o.angle - 6 / 8 * PI;
     if (t.left) {
-      spawnThrusterParticles(p, s, v, leftThrusterAngle, o);
+      spawnThrusterParticles(p, s, v, c, leftThrusterAngle, o, 1);
     }
     if (t.right) {
-      spawnThrusterParticles(p, s, v, rightThrusterAngle, o);
+      spawnThrusterParticles(p, s, v, c, rightThrusterAngle, o, -1);
     }
   }
 
-  void spawnThrusterParticles(
-      Position p, Size s, Velocity v, double thrusterAngle, Orientation o) {
-    var x = p.x + s.radius * 1.1 * cos(thrusterAngle);
-    var y = p.y + s.radius * 1.1 * sin(thrusterAngle);
+  void spawnThrusterParticles(Position p, Size s, Velocity v, Color c,
+      double thrusterAngle, Orientation o, int direction) {
+    var x1 = p.x + s.radius * 1.1 * cos(thrusterAngle);
+    var y1 = p.y + s.radius * 1.1 * sin(thrusterAngle);
+    var x2 =
+        p.x + s.radius * 1.0 * cos(thrusterAngle + direction * 1 / 16 * PI);
+    var y2 =
+        p.y + s.radius * 1.0 * sin(thrusterAngle + direction * 1 / 16 * PI);
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
     var vx = v.value * cos(v.angle) +
-        25.0 * cos(o.angle - PI) +
+        50.0 * cos(o.angle - PI) +
         thrusterSpeed * cos(thrusterAngle + PI / 2);
     var vy = v.value * sin(v.angle) +
-        25.0 * sin(o.angle - PI) +
+        50.0 * sin(o.angle - PI) +
         thrusterSpeed * sin(thrusterAngle + PI / 2);
 
     var velocityAngle = atan2(vy, vx);
     var speed = vx / cos(velocityAngle);
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < s.radius / 10; i++) {
+      var posFactor = random.nextDouble();
       world.createAndAddEntity([
-        new Position(x, y),
+        new Position(x1 + posFactor * (x2 - x1),
+            y1 + posFactor * (y2 - y1)),
         new Particle(),
         new ThrusterParticle(),
-        new Color(1.0, 1.0, 0.0, 1.0),
-        new Lifetime(0.5 + random.nextDouble()),
+        new Color(c.r, c.g, c.b, 1.0),
+        new Lifetime(1.0 + 2.0 * random.nextDouble()),
         new Velocity(speed * 0.9 + random.nextDouble() * 0.2,
-            velocityAngle - PI / 16 + random.nextDouble() * PI / 8, 0.0)
+            velocityAngle - PI / 64 + random.nextDouble() * PI / 32, 0.0)
       ]);
     }
   }
@@ -151,8 +159,9 @@ class ThrusterParticleColorModificationSystem extends EntityProcessingSystem {
     var c = cm[entity];
     var l = lm[entity];
 
-    c.r = 1.0;
-    c.g = l.timeLeft / l.timeMax;
+    c.r = 0.99 * c.r + 0.01 * l.timeLeft / l.timeMax;
+    c.g = 0.99 * c.g + 0.01 * l.timeLeft / l.timeMax;
+    c.b = 0.99 * c.b + 0.01 * l.timeLeft / l.timeMax;
     c.a = l.timeLeft / l.timeMax;
   }
 }
@@ -311,7 +320,6 @@ class DigestiveSystem extends EntityProcessingSystem {
     }
     var eaterArea = PI * es.realRadius * es.realRadius + eatenArea;
     es.realRadius = sqrt(eaterArea / PI);
-    print(es.realRadius);
   }
 }
 
@@ -369,30 +377,34 @@ class DamacreatSpawner extends VoidEntitySystem {
   TagManager tm;
   GroupManager gm;
   Mapper<Position> pm;
+  Mapper<Size> sm;
   GameStateManager gsm;
 
   @override
   void processSystem() {
-    var p = pm[tm.getEntity(playerTag)];
-    var x = (gsm.width / 2 * (1.5 + random.nextDouble())) *
+    var count = gm.getEntities(damacreatGroup).length;
+    var playerEntity = tm.getEntity(playerTag);
+    var p = pm[playerEntity];
+    var s = sm[playerEntity];
+    var x = gsm.width / 2 * (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
-    var y = (gsm.height / 2 * (1.5 + random.nextDouble())) *
+    var y = gsm.height / 2 * (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
     var damacreat = world.createAndAddEntity([
       new Position(p.x + x, p.y + y),
-      new Size(5.0 + random.nextDouble() * 50),
+      new Size(0.1),
       new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
       new Food(),
       new Ai(),
+      new Growing(s.realRadius * (0.8 + 0.8 * random.nextDouble()), s.realRadius + 50 - count/11),
       new Orientation(0.0),
       new Velocity(random.nextDouble() * 25.0, 2 * PI * random.nextDouble(),
           (random.nextBool() ? random.nextDouble() * 0.1 : 0.0))
     ]);
     gm.add(damacreat, damacreatGroup);
-    print('${p.x + x} ${p.y + y}');
   }
 
-  bool checkProcessing() => gm.getEntities(damacreatGroup).length < 500;
+  bool checkProcessing() => sm[tm.getEntity(playerTag)].realRadius > 21.0 && gm.getEntities(damacreatGroup).length < 500;
 }
 
 class FarAwayEntityDestructionSystem extends EntitySystem {
@@ -409,8 +421,8 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
     var playerPos = pm[tm.getEntity(playerTag)];
     entities.where((entity) {
       var p = pm[entity];
-      return (playerPos.x - p.x).abs() > gsm.width * 3 ||
-          (playerPos.y - p.y).abs() > gsm.height * 3;
+      return (playerPos.x - p.x).abs() > gsm.width * 4 ||
+          (playerPos.y - p.y).abs() > gsm.height * 4;
     }).forEach((entity) => entity.deleteFromWorld());
   }
 

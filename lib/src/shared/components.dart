@@ -25,7 +25,9 @@ class Color extends Component {
 
   Color(this.r, this.g, this.b, double a)
       : a = a,
-        realAlpha = a;
+        realAlpha = a {
+    this.l = rgbToHsl(r, g, b)[2];
+  }
 
   Color.fromHsl(double h, double s, this.l, this.a) {
     var rgb = hslToRgb(h, s, l);
