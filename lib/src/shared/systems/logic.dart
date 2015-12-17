@@ -230,8 +230,10 @@ class FoodCollectionSystem extends EntitySystem {
       var foodSize = sm[food];
       var distX = playerPos.x - foodPos.x;
       var distY = playerPos.y - foodPos.y;
-      return sqrt(distX * distX + distY * distY) <
-          playerSize.radius - foodSize.radius;
+      var distSqr = distX * distX + distY * distY;
+      var pRadSqr = playerSize.radius * playerSize.radius;
+      var fRadSqr = foodSize.radius * foodSize.radius;
+      return distSqr < pRadSqr;
     }).forEach((food) {
       food
         ..addComponent(new EatenBy(playerEntity))
@@ -265,7 +267,7 @@ class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
     var distX = ep.x - p.x;
     var distY = ep.y - p.y;
 
-    if (sqrt(distX * distX + distY * distY) > es.radius - s.radius) {
+    if (distX * distX + distY * distY > es.radius * es.radius) {
       entity
         ..removeComponent(EatenBy)
         ..changedInWorld();
