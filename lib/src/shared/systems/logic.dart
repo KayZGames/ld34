@@ -117,10 +117,14 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
       double thrusterAngle, Orientation o, int direction) {
     var x1 = p.x + s.radius * 1.1 * cos(thrusterAngle);
     var y1 = p.y + s.radius * 1.1 * sin(thrusterAngle);
-    var x2 =
-        p.x + s.radius * 1.0 * cos(thrusterAngle + direction * 1 / 16 * PI);
-    var y2 =
-        p.y + s.radius * 1.0 * sin(thrusterAngle + direction * 1 / 16 * PI);
+    var x2 = p.x +
+        s.radius *
+            1.0 *
+            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI);
+    var y2 = p.y +
+        s.radius *
+            1.0 *
+            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI);
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
     var vx = v.value * cos(v.angle) +
         50.0 * cos(o.angle - PI) +
@@ -134,8 +138,7 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     for (int i = 0; i < s.radius / 10; i++) {
       var posFactor = random.nextDouble();
       world.createAndAddEntity([
-        new Position(x1 + posFactor * (x2 - x1),
-            y1 + posFactor * (y2 - y1)),
+        new Position(x1 + posFactor * (x2 - x1), y1 + posFactor * (y2 - y1)),
         new Particle(),
         new ThrusterParticle(),
         new Color(c.r, c.g, c.b, 1.0),
@@ -215,10 +218,12 @@ class FoodCollectionSystem extends EntitySystem {
   TagManager tm;
   Mapper<Position> pm;
   Mapper<Size> sm;
+  Mapper<Wobble> wm;
+  Mapper<Orientation> om;
 
   FoodCollectionSystem()
-      : super(Aspect
-            .getAspectForAllOf([Food, Position, Size]).exclude([EatenBy]));
+      : super(Aspect.getAspectForAllOf([Food, Position, Size]).exclude(
+            [EatenBy, CollisionWith]));
 
   @override
   void processEntities(Iterable<Entity> entities) {
@@ -231,19 +236,104 @@ class FoodCollectionSystem extends EntitySystem {
       var distX = playerPos.x - foodPos.x;
       var distY = playerPos.y - foodPos.y;
       var distSqr = distX * distX + distY * distY;
-      var pRadSqr = playerSize.radius * playerSize.radius;
-      var fRadSqr = foodSize.radius * foodSize.radius;
-      return distSqr < pRadSqr;
+      var radiusSum = playerSize.radius + foodSize.radius;
+      return distSqr < radiusSum * radiusSum;
     }).forEach((food) {
       food
-        ..addComponent(new EatenBy(playerEntity))
-        ..removeComponent(Growing)
+        ..addComponent(new CollisionWith(playerEntity))
         ..changedInWorld();
     });
   }
 
   @override
   bool checkProcessing() => true;
+}
+
+class EntityInteractionSystem extends EntityProcessingSystem {
+  TagManager tm;
+  Mapper<Position> pm;
+  Mapper<Size> sm;
+  Mapper<Wobble> wm;
+  Mapper<Orientation> om;
+  Mapper<CollisionWith> cm;
+  Mapper<EatenBy> ebm;
+
+  double angleToSegmentFactor = circleFragments / (2 * PI);
+
+  EntityInteractionSystem()
+      : super(Aspect.getAspectForAllOf(
+            [Position, Size, Wobble, Orientation, CollisionWith]));
+
+  @override
+  void processEntity(Entity entity) {
+    var colliderEntity = cm[entity].collider;
+    var colliderPos = pm[colliderEntity];
+    var colliderSize = sm[colliderEntity];
+    var colliderWobble = wm[colliderEntity];
+    var colliderOrientation = om[colliderEntity];
+
+    var entityPos = pm[entity];
+    var entitySize = sm[entity];
+    var distX = -colliderPos.x + entityPos.x;
+    var distY = -colliderPos.y + entityPos.y;
+    var angle = atan2(distY, distX) - colliderOrientation.angle;
+    var fragment = (angle * angleToSegmentFactor).round();
+    var sizeRelation = entitySize.radius / colliderSize.radius;
+    var fragmentRange = (sizeRelation * circleFragments ~/ 4).round();
+
+    var distSqr = distX * distX + distY * distY;
+    var pRadSqr = colliderSize.radius * colliderSize.radius;
+    var radiusSum = colliderSize.radius + entitySize.radius;
+    var dist = sqrt(distSqr);
+    if (dist < colliderSize.radius - entitySize.radius) {
+      // no wobble effect, entity completly inside of collider
+    } else if (dist <= colliderSize.radius) {
+      entity
+        ..addComponent(new EatenBy(colliderEntity))
+        ..removeComponent(Growing)
+        ..changedInWorld();
+      var distRelation = 1.0 + (dist + entitySize.radius - colliderSize.radius) / colliderSize.radius;
+      for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
+        var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
+        colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
+            old,
+            1.0 +
+                sizeRelation *
+                    distRelation *
+                    (1 - (i * i) / (fragmentRange * fragmentRange)));
+      }
+    } else if (dist < radiusSum && !ebm.has(entity)) {
+      var distRelation =
+          1.0 - (dist - colliderSize.radius) / entitySize.radius;
+      for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
+        var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
+        colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = min(
+            old,
+            1.0 -
+                sizeRelation *
+                    distRelation *
+                    (1 - (i * i) / (fragmentRange * fragmentRange)));
+      }
+    } else if (sqrt(distSqr) > radiusSum + entitySize.radius) {
+      entity
+        ..removeComponent(CollisionWith)
+        ..changedInWorld();
+    } else if (ebm.has(entity)) {
+      for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
+        var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
+        colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
+            old,
+            1.0 +
+                sizeRelation *
+                    (1 -
+                        (i * i * i * i) /
+                            (fragmentRange *
+                                fragmentRange *
+                                fragmentRange *
+                                fragmentRange)));
+      }
+    }
+  }
 }
 
 class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
@@ -267,9 +357,10 @@ class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
     var distX = ep.x - p.x;
     var distY = ep.y - p.y;
 
-    if (distX * distX + distY * distY > es.radius * es.radius) {
+    if (sqrt(distX * distX + distY * distY) > es.radius + s.radius + s.radius) {
       entity
         ..removeComponent(EatenBy)
+        ..removeComponent(CollisionWith)
         ..changedInWorld();
       changes = true;
     }
@@ -343,6 +434,11 @@ class FoodGrowingSystem extends EntityProcessingSystem {
     var s = sm[entity];
     var g = gm[entity];
 
+    if (g == null) {
+      print('wtf?!');
+      print(entity);
+      print('noooo');
+    }
     var currentFood = PI * s.realRadius * s.realRadius + world.delta * g.speed;
     totalFood += currentFood;
 
@@ -368,7 +464,8 @@ class FoodGrowingSystem extends EntityProcessingSystem {
         new Growing(
             1.0 + random.nextDouble() * 10.0, 1.0 + random.nextDouble() * 4),
         new Orientation(0.0),
-        new Velocity(0.0, 0.0, 0.0)
+        new Velocity(0.0, 0.0, 0.0),
+        new Wobble()
       ]);
     }
     totalFood = 0.0;
@@ -388,9 +485,13 @@ class DamacreatSpawner extends VoidEntitySystem {
     var playerEntity = tm.getEntity(playerTag);
     var p = pm[playerEntity];
     var s = sm[playerEntity];
-    var x = gsm.width / 2 * (2.5 * random.nextDouble()) *
+    var x = gsm.width /
+        2 *
+        (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
-    var y = gsm.height / 2 * (2.5 * random.nextDouble()) *
+    var y = gsm.height /
+        2 *
+        (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
     var damacreat = world.createAndAddEntity([
       new Position(p.x + x, p.y + y),
@@ -398,15 +499,19 @@ class DamacreatSpawner extends VoidEntitySystem {
       new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
       new Food(),
       new Ai(),
-      new Growing(s.realRadius * (0.8 + 0.8 * random.nextDouble()), s.realRadius + 50 - count/11),
+      new Growing(s.realRadius * (0.8 + 0.8 * random.nextDouble()),
+          s.realRadius + 50 - count / 11),
       new Orientation(0.0),
       new Velocity(random.nextDouble() * 25.0, 2 * PI * random.nextDouble(),
-          (random.nextBool() ? random.nextDouble() * 0.1 : 0.0))
+          (random.nextBool() ? random.nextDouble() * 0.1 : 0.0)),
+      new Wobble()
     ]);
     gm.add(damacreat, damacreatGroup);
   }
 
-  bool checkProcessing() => sm[tm.getEntity(playerTag)].realRadius > 21.0 && gm.getEntities(damacreatGroup).length < 500;
+  bool checkProcessing() =>
+      sm[tm.getEntity(playerTag)].realRadius > 21.0 &&
+      gm.getEntities(damacreatGroup).length < 500;
 }
 
 class FarAwayEntityDestructionSystem extends EntitySystem {
@@ -430,4 +535,20 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
 
   @override
   bool checkProcessing() => true;
+}
+
+class RandomWobbleSystem extends EntityProcessingSystem {
+  Mapper<Wobble> wm;
+  RandomWobbleSystem() : super(Aspect.getAspectForAllOf([Wobble]));
+
+  @override
+  void processEntity(Entity entity) {
+    var w = wm[entity];
+
+    var wobbleFactor = w.wobbleFactor;
+    for (int i = 0; i < wobbleFactor.length; i++) {
+      wobbleFactor[i] = 1.0;
+//          1.0 + (wobbleFactor[i] - 1.0) * (1 - 0.999 * world.delta);
+    }
+  }
 }

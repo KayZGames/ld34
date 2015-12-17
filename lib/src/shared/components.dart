@@ -86,3 +86,14 @@ class EatenBy extends Component {
   Entity eater;
   EatenBy(this.eater);
 }
+class CollisionWith extends Component {
+  Entity collider;
+  CollisionWith(this.collider);
+}
+
+class Wobble extends Component {
+  List<double> wobbleFactor;
+  Wobble() {
+    this.wobbleFactor = new List.filled(circleFragments, 1.0);
+  }
+}

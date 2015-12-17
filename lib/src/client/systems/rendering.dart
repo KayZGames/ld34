@@ -27,17 +27,18 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   Mapper<Size> sm;
   Mapper<Color> cm;
   Mapper<Orientation> om;
+  Mapper<Wobble> wm;
   WebGlViewProjectionMatrixManager vpmm;
 
   Float32List items;
   Uint16List indices;
   List<Attrib> attribsutes;
 
-  final int verticeCount = 32;
+  final int verticeCount = circleFragments;
   final int valuesPerItem = 6;
 
   CircleRenderingSystem(RenderingContext gl, Aspect aspect)
-      : super(gl, aspect.allOf([Position, Size, Color, Orientation])) {
+      : super(gl, aspect.allOf([Position, Size, Color, Orientation, Wobble])) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
 
@@ -47,6 +48,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     var s = sm[entity];
     var c = cm[entity];
     var o = om[entity];
+    var w = wm[entity];
 
     var itemOffset = index * (verticeCount + 1);
     var offset = index * (verticeCount + 1) * valuesPerItem;
@@ -59,14 +61,18 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     items[offset + 4] = c.b;
     items[offset + 5] = c.a / 2;
     for (int i = 0; i < verticeCount; i++) {
-      items[offset + valuesPerItem + valuesPerItem * i] =
-          p.x + s.radius * cos(o.angle + 2 * PI * i / verticeCount);
-      items[offset + valuesPerItem + valuesPerItem * i + 1] =
-          p.y + s.radius * sin(o.angle + 2 * PI * i / verticeCount);
+      items[offset + valuesPerItem + valuesPerItem * i] = p.x +
+          s.radius *
+              w.wobbleFactor[i] *
+              cos(o.angle + 2 * PI * i / verticeCount);
+      items[offset + valuesPerItem + valuesPerItem * i + 1] = p.y +
+          s.radius *
+              w.wobbleFactor[i] *
+              sin(o.angle + 2 * PI * i / verticeCount);
       items[offset + valuesPerItem + valuesPerItem * i + 2] = c.r;
       items[offset + valuesPerItem + valuesPerItem * i + 3] = c.g;
       items[offset + valuesPerItem + valuesPerItem * i + 4] = c.b;
-      var alphaFactor = (i - verticeCount ~/ 2).abs() / 16;
+      var alphaFactor = (i - verticeCount ~/ 2).abs() / (circleFragments ~/ 2);
       items[offset + valuesPerItem + valuesPerItem * i + 5] =
           c.a + 0.5 * alphaFactor * alphaFactor;
 
@@ -75,15 +81,27 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
       indices[indicesOffset + i * 3 + 2] = itemOffset + 2 + i;
     }
     var i = (6 / 16 * verticeCount).truncate();
-    items[offset + valuesPerItem + valuesPerItem * i] =
-        p.x + s.radius * 1.1 * cos(o.angle + 2 * PI * i / verticeCount);
-    items[offset + valuesPerItem + valuesPerItem * i + 1] =
-        p.y + s.radius * 1.1 * sin(o.angle + 2 * PI * i / verticeCount);
+    items[offset + valuesPerItem + valuesPerItem * i] = p.x +
+        s.radius *
+            w.wobbleFactor[i] *
+            1.1 *
+            cos(o.angle + 2 * PI * i / verticeCount);
+    items[offset + valuesPerItem + valuesPerItem * i + 1] = p.y +
+        s.radius *
+            w.wobbleFactor[i] *
+            1.1 *
+            sin(o.angle + 2 * PI * i / verticeCount);
     i = (10 / 16 * verticeCount).truncate();
-    items[offset + valuesPerItem + valuesPerItem * i] =
-        p.x + s.radius * 1.1 * cos(o.angle + 2 * PI * i / verticeCount);
-    items[offset + valuesPerItem + valuesPerItem * i + 1] =
-        p.y + s.radius * 1.1 * sin(o.angle + 2 * PI * i / verticeCount);
+    items[offset + valuesPerItem + valuesPerItem * i] = p.x +
+        s.radius *
+            w.wobbleFactor[i] *
+            1.1 *
+            cos(o.angle + 2 * PI * i / verticeCount);
+    items[offset + valuesPerItem + valuesPerItem * i + 1] = p.y +
+        s.radius *
+            w.wobbleFactor[i] *
+            1.1 *
+            sin(o.angle + 2 * PI * i / verticeCount);
 
     indices[indicesOffset + verticeCount * 3 - 1] = itemOffset + 1;
   }

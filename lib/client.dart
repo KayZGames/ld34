@@ -31,7 +31,8 @@ class Game extends GameBase {
       new Thruster(),
       new Orientation(0.0),
       new Velocity(0.0, 0.0, 0.0),
-      new Player()
+      new Player(),
+      new Wobble()
     ]);
     tm.register(player, playerTag);
 
@@ -66,6 +67,8 @@ class Game extends GameBase {
         new ThrusterParticleEmissionSystem(),
         new FarAwayEntityDestructionSystem(),
         new DamacreatSpawner(),
+        new RandomWobbleSystem(),
+        new EntityInteractionSystem(),
       ],
       GameBase.physics: []
     };
