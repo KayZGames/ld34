@@ -40,15 +40,22 @@ class ThrusterHandlingSystem extends EntityProcessingSystem {
 class EatenByVelocitySystem extends EntityProcessingSystem {
   Mapper<Velocity> vm;
   Mapper<EatenBy> ebm;
+  Mapper<Position> pm;
 
   EatenByVelocitySystem()
-      : super(Aspect.getAspectForAllOf([EatenBy, Velocity]));
+      : super(Aspect.getAspectForAllOf([EatenBy, Velocity, Position]));
 
   @override
   void processEntity(Entity entity) {
     var v = vm[entity];
+    var p = pm[entity];
     var eb = ebm[entity];
     var veb = vm[eb.eater];
+    var pem = pm[eb.eater];
+    var distX = p.x - pem.x;
+    var distY = p.y - pem.y;
+    var dist = sqrt(distX * distX + distY * distY);
+
 
     var currentX = v.value * cos(v.angle);
     var currentY = v.value * sin(v.angle);
@@ -56,10 +63,14 @@ class EatenByVelocitySystem extends EntityProcessingSystem {
     var eaterX = veb.value * cos(veb.angle);
     var eaterY = veb.value * sin(veb.angle);
 
-    var factor = world.delta * 0.8;
+    var circularX = veb.rotational * cos(PI/2 + atan2(distY, distX)) * dist + veb.rotational * cos(PI + atan2(distY, distX)) * dist;
+    var circularY = veb.rotational * sin(PI/2 + atan2(distY, distX)) * dist + veb.rotational * sin(PI + atan2(distY, distX)) * dist;
 
-    var nextX = (1.0 - factor) * currentX + factor * eaterX;
-    var nextY = (1.0 - factor) * currentY + factor * eaterY;
+    var factor = world.delta * 0.2;
+    var circularFactor = world.delta * 0.5;
+
+    var nextX = (1.0 - factor - circularFactor) * currentX + factor * eaterX + circularFactor * circularX;
+    var nextY = (1.0 - factor - circularFactor) * currentY + factor * eaterY + circularFactor * circularY;
 
     v.angle = atan2(nextY, nextX);
     v.value = nextX / cos(v.angle);
@@ -200,6 +211,7 @@ class HeartbeatSystem extends EntityProcessingSystem {
     var playerEntity = tm.getEntity(playerTag);
     playerRadius = sm[playerEntity].realRadius;
   }
+  // organicmotion
 
   @override
   void processEntity(Entity entity) {
