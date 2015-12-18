@@ -11,10 +11,12 @@
 <body>
 <div id="gamecontainer">
     <div id="story">
+        <h2>Story</h2>
         <p>
             You are one of many. You are a Dark Matter Creature, a Damacreat. One of the lowest life forms existing in
-            the vast space of Dark Matter. You have just evolved your first pair of thrusters. Once you learn how to
-            navigate, you will have a better chance at surviving in the hostile environment that is Dark Matter.
+            the vast space of Dark Matter. You have just evolved your first pair of Dark Energy dischargers. Once you
+            learn how to navigate, you will have a better chance at surviving in the hostile environment that is Dark
+            Matter.
         </p>
         <p>
             It's eat or be eaten. Survive! Grow! Dominate!
@@ -26,15 +28,42 @@
         <p>
             <button id="startGame" title="Start Game">Start Game</button>
         </p>
-        <p>
         <h2>Two Button Controls</h2>
-        <ul>
-            <li>To turn right, fire your left thruster with F or left mouse button</li>
-            <li>To turn left, Fire your right thruster with J or right mouse button</li>
-            <li>To move forward, Fire both thrusters at the same time</li>
-            <li>If that's too hard, turn your mouse or keyboard by 180°</li>
-        </ul>
-        </p>
+        <div id="controls">
+            <p>
+            <table>
+                <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Keyboard</th>
+                    <th>Mouse</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Fire left discharger</td>
+                    <td>F</td>
+                    <td>Left mouse button</td>
+                </tr>
+                <tr>
+                    <td>Fire right discharger</td>
+                    <td>J</td>
+                    <td>Right mouse button</td>
+                </tr>
+                <tr>
+                    <td>Move forward</td>
+                    <td>F + J</td>
+                    <td>Left + Right mouse button</td>
+                </tr>
+                </tbody>
+            </table>
+            </p>
+            <p>
+                If the controls are too hard for you, turn your mouse or keyboard by 180°. And remember, you are in
+                space, once you are in motion, you will stay in motion. Dark Matter doesn't cause any friction.
+                It's a proven fact.
+            </p>
+        </div>
     </div>
     <canvas id="game" width="100%" height="100%"></canvas>
 </div>
