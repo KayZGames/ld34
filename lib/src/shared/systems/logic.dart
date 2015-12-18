@@ -41,21 +41,24 @@ class EatenByVelocitySystem extends EntityProcessingSystem {
   Mapper<Velocity> vm;
   Mapper<EatenBy> ebm;
   Mapper<Position> pm;
+  Mapper<Size> sm;
 
   EatenByVelocitySystem()
-      : super(Aspect.getAspectForAllOf([EatenBy, Velocity, Position]));
+      : super(Aspect.getAspectForAllOf([EatenBy, Velocity, Position, Size]));
 
   @override
   void processEntity(Entity entity) {
     var v = vm[entity];
     var p = pm[entity];
+    var s = sm[entity];
     var eb = ebm[entity];
     var veb = vm[eb.eater];
     var pem = pm[eb.eater];
+    var sem = sm[eb.eater];
+
     var distX = p.x - pem.x;
     var distY = p.y - pem.y;
     var dist = sqrt(distX * distX + distY * distY);
-
 
     var currentX = v.value * cos(v.angle);
     var currentY = v.value * sin(v.angle);
@@ -63,14 +66,22 @@ class EatenByVelocitySystem extends EntityProcessingSystem {
     var eaterX = veb.value * cos(veb.angle);
     var eaterY = veb.value * sin(veb.angle);
 
-    var circularX = veb.rotational * cos(PI/2 + atan2(distY, distX)) * dist + veb.rotational * cos(PI + atan2(distY, distX)) * dist;
-    var circularY = veb.rotational * sin(PI/2 + atan2(distY, distX)) * dist + veb.rotational * sin(PI + atan2(distY, distX)) * dist;
+    var angle = atan2(distY, distX);
 
-    var factor = world.delta * 0.2;
-    var circularFactor = world.delta * 0.5;
+    var circularX = veb.rotational * cos(PI / 2 + angle) * dist * 0.8 +
+        veb.rotational.abs() * cos(PI + angle) * dist;
+    var circularY = veb.rotational * sin(PI / 2 + angle) * dist * 0.8 +
+        veb.rotational.abs() * sin(PI + angle) * dist;
 
-    var nextX = (1.0 - factor - circularFactor) * currentX + factor * eaterX + circularFactor * circularX;
-    var nextY = (1.0 - factor - circularFactor) * currentY + factor * eaterY + circularFactor * circularY;
+    var factor = world.delta * 0.8;
+    var circularFactor = world.delta * (1.0 - s.radius / sem.radius) * 0.5;
+
+    var nextX = (1.0 - factor) * currentX +
+        factor * eaterX +
+        circularFactor * circularX;
+    var nextY = (1.0 - factor) * currentY +
+        factor * eaterY +
+        circularFactor * circularY;
 
     v.angle = atan2(nextY, nextX);
     v.value = nextX / cos(v.angle);
@@ -211,7 +222,6 @@ class HeartbeatSystem extends EntityProcessingSystem {
     var playerEntity = tm.getEntity(playerTag);
     playerRadius = sm[playerEntity].realRadius;
   }
-  // organicmotion
 
   @override
   void processEntity(Entity entity) {
@@ -294,29 +304,32 @@ class EntityInteractionSystem extends EntityProcessingSystem {
     var fragmentRange = (sizeRelation * circleFragments ~/ 4).round();
 
     var distSqr = distX * distX + distY * distY;
-    var pRadSqr = colliderSize.radius * colliderSize.radius;
     var radiusSum = colliderSize.radius + entitySize.radius;
     var dist = sqrt(distSqr);
     if (dist < colliderSize.radius - entitySize.radius) {
-      // no wobble effect, entity completly inside of collider
+      if (!ebm.has(entity)) {
+        entity
+          ..addComponent(new EatenBy(colliderEntity))
+          ..removeComponent(Growing)
+          ..changedInWorld();
+      }
     } else if (dist <= colliderSize.radius) {
       entity
         ..addComponent(new EatenBy(colliderEntity))
         ..removeComponent(Growing)
         ..changedInWorld();
-      var distRelation = 1.0 + (dist + entitySize.radius - colliderSize.radius) / colliderSize.radius;
+      var distRelation = (dist + entitySize.radius - colliderSize.radius) /
+          colliderSize.radius;
+      print(distRelation);
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
         colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
             old,
             1.0 +
-                sizeRelation *
-                    distRelation *
-                    (1 - (i * i) / (fragmentRange * fragmentRange)));
+                distRelation * (1 - (i * i) / (fragmentRange * fragmentRange)));
       }
     } else if (dist < radiusSum && !ebm.has(entity)) {
-      var distRelation =
-          1.0 - (dist - colliderSize.radius) / entitySize.radius;
+      var distRelation = 1.0 - (dist - colliderSize.radius) / entitySize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
         colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = min(
@@ -331,18 +344,18 @@ class EntityInteractionSystem extends EntityProcessingSystem {
         ..removeComponent(CollisionWith)
         ..changedInWorld();
     } else if (ebm.has(entity)) {
+      var distRelation = (dist + entitySize.radius - colliderSize.radius) /
+          colliderSize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
         colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
             old,
             1.0 +
-                sizeRelation *
+                distRelation *
                     (1 -
-                        (i * i * i * i) /
-                            (fragmentRange *
-                                fragmentRange *
-                                fragmentRange *
-                                fragmentRange)));
+                        (i * i * i).abs() /
+                            (fragmentRange * fragmentRange * fragmentRange)
+                                .abs()));
       }
     }
   }

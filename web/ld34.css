@@ -39,6 +39,7 @@ canvas {
     opacity: 0.0;
     transition-property: opacity;
     transition-duration: 0.5s;
+    cursor: none;
 }
 
 button {
