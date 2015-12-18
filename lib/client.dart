@@ -29,7 +29,7 @@ class Game extends GameBase {
       new Size(20.0),
       new Color.fromHsl(random.nextDouble(), 0.9, 0.6, 0.4),
       new Thruster(),
-      new Orientation(0.0),
+      new Orientation(PI/2),
       new Velocity(0.0, 0.0, 0.0),
       new Player(),
       new Wobble()

@@ -279,12 +279,13 @@ class EntityInteractionSystem extends EntityProcessingSystem {
   Mapper<Orientation> om;
   Mapper<CollisionWith> cm;
   Mapper<EatenBy> ebm;
+  Mapper<Velocity> vm;
 
   double angleToSegmentFactor = circleFragments / (2 * PI);
 
   EntityInteractionSystem()
       : super(Aspect.getAspectForAllOf(
-            [Position, Size, Wobble, Orientation, CollisionWith]));
+            [Position, Size, Wobble, Orientation, CollisionWith, Velocity]));
 
   @override
   void processEntity(Entity entity) {
@@ -328,6 +329,9 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                 distRelation * (1 - (i * i) / (fragmentRange * fragmentRange)));
       }
     } else if (dist < radiusSum && !ebm.has(entity)) {
+      var v = vm[entity];
+      var factor = 0.9 * world.delta;
+      v.rotational = v.rotational * (1.0 - factor) - vm[colliderEntity].rotational * factor * sizeRelation;
       var distRelation = 1.0 - (dist - colliderSize.radius) / entitySize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
@@ -517,16 +521,18 @@ class DamacreatSpawner extends VoidEntitySystem {
         2 *
         (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
+    var angle = 2 * PI * random.nextDouble();
     var damacreat = world.createAndAddEntity([
       new Position(p.x + x, p.y + y),
       new Size(0.1),
       new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
       new Food(),
       new Ai(),
+      new Thruster(),
       new Growing(s.realRadius * (0.8 + 0.8 * random.nextDouble()),
           s.realRadius + 50 - count / 11),
-      new Orientation(0.0),
-      new Velocity(random.nextDouble() * 25.0, 2 * PI * random.nextDouble(),
+      new Orientation(angle),
+      new Velocity(random.nextDouble() * 25.0, angle,
           (random.nextBool() ? random.nextDouble() * 0.1 : 0.0)),
       new Wobble()
     ]);
