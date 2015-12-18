@@ -313,14 +313,13 @@ class EntityInteractionSystem extends EntityProcessingSystem {
           ..removeComponent(Growing)
           ..changedInWorld();
       }
-    } else if (dist <= colliderSize.radius) {
+    } else if (dist < colliderSize.radius) {
       entity
         ..addComponent(new EatenBy(colliderEntity))
         ..removeComponent(Growing)
         ..changedInWorld();
       var distRelation = (dist + entitySize.radius - colliderSize.radius) /
           colliderSize.radius;
-      print(distRelation);
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
         colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
@@ -337,7 +336,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
             1.0 -
                 sizeRelation *
                     distRelation *
-                    (1 - (i * i) / (fragmentRange * fragmentRange)));
+                    (1 - (i * i * i * i).abs() / (fragmentRange * fragmentRange * fragmentRange * fragmentRange).abs()));
       }
     } else if (sqrt(distSqr) > radiusSum + entitySize.radius) {
       entity
