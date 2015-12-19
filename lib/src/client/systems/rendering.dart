@@ -2,7 +2,7 @@ part of client;
 
 class PlayerRenderingSystem extends CircleRenderingSystem {
   PlayerRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Player]));
+      : super(gl, Aspect.getAspectForAllOf([Player, CellWall]));
 }
 
 class AiRenderingSystem extends CircleRenderingSystem {
@@ -61,49 +61,35 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     items[offset + 4] = c.b;
     items[offset + 5] = c.a / 2;
     for (int i = 0; i < verticeCount; i++) {
-      items[offset + valuesPerItem + valuesPerItem * i] = p.x +
-          s.radius *
-              w.wobbleFactor[i] *
-              cos(o.angle + 2 * PI * i / verticeCount);
-      items[offset + valuesPerItem + valuesPerItem * i + 1] = p.y +
-          s.radius *
-              w.wobbleFactor[i] *
-              sin(o.angle + 2 * PI * i / verticeCount);
-      items[offset + valuesPerItem + valuesPerItem * i + 2] = c.r;
-      items[offset + valuesPerItem + valuesPerItem * i + 3] = c.g;
-      items[offset + valuesPerItem + valuesPerItem * i + 4] = c.b;
+      var baseOffset = offset + valuesPerItem + valuesPerItem * i;
+      var radius = s.radius * w.wobbleFactor[i];
+      var angle = o.angle + 2 * PI * i / verticeCount;
+      items[baseOffset] = p.x + radius * cos(angle);
+      items[baseOffset + 1] = p.y + radius * sin(angle);
+      items[baseOffset + 2] = c.r;
+      items[baseOffset + 3] = c.g;
+      items[baseOffset + 4] = c.b;
       var alphaFactor = (i - verticeCount ~/ 2).abs() / (circleFragments ~/ 2);
-      items[offset + valuesPerItem + valuesPerItem * i + 5] =
-          c.a + 0.5 * alphaFactor * alphaFactor;
+      items[baseOffset + 5] = c.a + 0.5 * alphaFactor * alphaFactor;
 
       indices[indicesOffset + i * 3] = itemOffset;
       indices[indicesOffset + i * 3 + 1] = itemOffset + 1 + i;
       indices[indicesOffset + i * 3 + 2] = itemOffset + 2 + i;
     }
-    var i = (6 / 16 * verticeCount).truncate();
-    items[offset + valuesPerItem + valuesPerItem * i] = p.x +
-        s.radius *
-            w.wobbleFactor[i] *
-            1.1 *
-            cos(o.angle + 2 * PI * i / verticeCount);
-    items[offset + valuesPerItem + valuesPerItem * i + 1] = p.y +
-        s.radius *
-            w.wobbleFactor[i] *
-            1.1 *
-            sin(o.angle + 2 * PI * i / verticeCount);
-    i = (10 / 16 * verticeCount).truncate();
-    items[offset + valuesPerItem + valuesPerItem * i] = p.x +
-        s.radius *
-            w.wobbleFactor[i] *
-            1.1 *
-            cos(o.angle + 2 * PI * i / verticeCount);
-    items[offset + valuesPerItem + valuesPerItem * i + 1] = p.y +
-        s.radius *
-            w.wobbleFactor[i] *
-            1.1 *
-            sin(o.angle + 2 * PI * i / verticeCount);
+    var i = (3 / 8 * verticeCount).truncate();
+    createThruster(offset, i, s, w, o, p);
+    i = (5 / 8 * verticeCount).truncate();
+    createThruster(offset, i, s, w, o, p);
 
     indices[indicesOffset + verticeCount * 3 - 1] = itemOffset + 1;
+  }
+
+  void createThruster(int offset, int i, Size s, Wobble w, Orientation o, Position p) {
+    var baseOffset = offset + valuesPerItem + valuesPerItem * i;
+    var radius = s.radius * w.wobbleFactor[i];
+    var angle = o.angle + 2 * PI * i / verticeCount;
+    items[baseOffset] = p.x + radius * 1.1 * cos(angle);
+    items[baseOffset + 1] = p.y + radius * 1.1 * sin(angle);
   }
 
   @override
@@ -178,6 +164,7 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
 
   @override
   String get vShaderFile => 'ParticleRenderingSystem';
+
   @override
   String get fShaderFile => 'ParticleRenderingSystem';
 }

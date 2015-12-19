@@ -32,7 +32,8 @@ class Game extends GameBase {
       new Orientation(PI/2),
       new Velocity(0.0, 0.0, 0.0),
       new Player(),
-      new Wobble()
+      new Wobble(),
+      new CellWall(1.0)
     ]);
     tm.register(player, playerTag);
 
