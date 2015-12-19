@@ -33,6 +33,7 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
       var radius = (s.radius - cw.baseStrength * cw.strengthFactor[i]) * w.wobbleFactor[i];
       var angle = o.angle + 2 * PI * i / circleFragments;
       createCircleVertex(baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
+      items[baseOffset + 5] /= w.wobbleFactor[i];
 
       // inner triangle
       indices[indicesOffset + i * 9] = itemOffset;
@@ -42,7 +43,7 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
       baseOffset = offset + valuesPerItem + valuesPerItem * i + circleFragments * valuesPerItem;
       radius = s.radius * w.wobbleFactor[i];
       createCircleVertex(baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
-      items[baseOffset + 5] = 1.0;
+      items[baseOffset + 5] = 1.0 * cw.strengthFactor[i];
 
       // triangle 1 of cell wall
       indices[indicesOffset + i * 9 + 3] = itemOffset + 1 + i;
