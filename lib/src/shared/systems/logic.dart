@@ -37,6 +37,32 @@ class ThrusterHandlingSystem extends EntityProcessingSystem {
   }
 }
 
+class ThrusterCellWallWeakeningSystem extends EntityProcessingSystem {
+  Mapper<CellWall> cwm;
+  Mapper<Thruster> tm;
+
+  final double cellWallWeakeningFactor = 0.95;
+
+  ThrusterCellWallWeakeningSystem()
+      : super(Aspect.getAspectForAllOf([Thruster, CellWall]));
+
+  @override
+  void processEntity(Entity entity) {
+    var t = tm[entity];
+    var cw = cwm[entity];
+    var leftThrusterIndex = (3 / 8 * circleFragments).truncate();
+    var rightThrusterIndex = (5 / 8 * circleFragments).truncate();
+    if (t.left) {
+      cw.strengthFactor[leftThrusterIndex] *= cellWallWeakeningFactor;
+      cw.strengthFactor[leftThrusterIndex + 1] *= cellWallWeakeningFactor;
+    }
+    if (t.right) {
+      cw.strengthFactor[rightThrusterIndex] *= cellWallWeakeningFactor;
+      cw.strengthFactor[rightThrusterIndex - 1] *= cellWallWeakeningFactor;
+    }
+  }
+}
+
 class EatenByVelocitySystem extends EntityProcessingSystem {
   Mapper<Velocity> vm;
   Mapper<EatenBy> ebm;
@@ -111,10 +137,11 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
   Mapper<Velocity> vm;
   Mapper<Size> sm;
   Mapper<Color> cm;
+  Mapper<Wobble> wm;
 
   ThrusterParticleEmissionSystem()
       : super(Aspect.getAspectForAllOf(
-            [Position, Orientation, Thruster, Velocity, Size, Color]));
+            [Position, Orientation, Thruster, Velocity, Size, Color, Wobble]));
 
   @override
   void processEntity(Entity entity) {
@@ -124,29 +151,42 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     var v = vm[entity];
     var s = sm[entity];
     var c = cm[entity];
+    var w = wm[entity];
 
-    var leftThrusterAngle = o.angle + 6 / 8 * PI;
-    var rightThrusterAngle = o.angle - 6 / 8 * PI;
+    var leftThrusterAngle = o.angle + 3 / 4 * PI;
+    var rightThrusterAngle = o.angle - 3 / 4 * PI;
+
     if (t.left) {
-      spawnThrusterParticles(p, s, v, c, leftThrusterAngle, o, 1);
+      spawnThrusterParticles(p, s, v, c, leftThrusterAngle, o, w, 1);
     }
     if (t.right) {
-      spawnThrusterParticles(p, s, v, c, rightThrusterAngle, o, -1);
+      spawnThrusterParticles(p, s, v, c, rightThrusterAngle, o, w, -1);
     }
   }
 
   void spawnThrusterParticles(Position p, Size s, Velocity v, Color c,
-      double thrusterAngle, Orientation o, int direction) {
-    var x1 = p.x + s.radius * 1.1 * cos(thrusterAngle);
-    var y1 = p.y + s.radius * 1.1 * sin(thrusterAngle);
+      double thrusterAngle, Orientation o, Wobble w, int direction) {
+    var w1, w2;
+    if (direction == 1) {
+      var leftThrusterIndex = (3 / 8 * circleFragments).truncate();
+      w1 = w.wobbleFactor[leftThrusterIndex];
+      w2 = w.wobbleFactor[leftThrusterIndex + 1];
+    } else {
+      var rightThrusterIndex = (5 / 8 * circleFragments).truncate();
+      w1 = w.wobbleFactor[rightThrusterIndex];
+      w2 = w.wobbleFactor[rightThrusterIndex - 1];
+    }
+
+    var x1 = p.x + s.radius * 1.1 * cos(thrusterAngle) * w1;
+    var y1 = p.y + s.radius * 1.1 * sin(thrusterAngle) * w1;
     var x2 = p.x +
         s.radius *
             1.0 *
-            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI);
+            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) * w2;
     var y2 = p.y +
         s.radius *
             1.0 *
-            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI);
+            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) * w2;
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
     var vx = v.value * cos(v.angle) +
         50.0 * cos(o.angle - PI) +
@@ -304,7 +344,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
     var angle = atan2(distY, distX) - colliderOrientation.angle;
     var fragment = (angle * angleToSegmentFactor).round();
     var sizeRelation = entitySize.radius / colliderSize.radius;
-    var fragmentRange = (sizeRelation * circleFragments ~/ 4).round() + 1;
+    var fragmentRange = (sizeRelation * circleFragments ~/ 4).round();
 
     var radiusSum = colliderSize.radius + entitySize.radius;
     var dist = sqrt(distX * distX + distY * distY);
@@ -333,7 +373,8 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                 additionalDistRelation *
                     (1 - (i * i) / (fragmentRange * fragmentRange)));
       }
-    } else if (dist < colliderSize.radius + entitySize.radius / 2) {
+    } else if (dist < colliderSize.radius + entitySize.radius / 2 &&
+        !ebm.has(entity)) {
       var additionalDistRelation =
           (dist + entitySize.radius - colliderSize.radius) /
               colliderSize.radius;
@@ -374,7 +415,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
       var v = vm[entity];
       var factor = 0.9 * world.delta;
       v.rotational = v.rotational * (1.0 - factor) -
-          vm[colliderEntity].rotational * factor * sizeRelation;
+          vm[colliderEntity].rotational * factor * (1 - sizeRelation);
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var fragmentIndex = (fragment + i) % circleFragments;
         var old = colliderWobble.wobbleFactor[fragmentIndex];
@@ -401,17 +442,25 @@ class EntityInteractionSystem extends EntityProcessingSystem {
         ..removeComponent(CollisionWith)
         ..changedInWorld();
     } else if (ebm.has(entity)) {
+      var additionalDistRelation =
+          (dist + entitySize.radius - colliderSize.radius) /
+              colliderSize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var fragmentIndex = (fragment + i) % circleFragments;
         var old = colliderWobble.wobbleFactor[fragmentIndex];
         colliderWobble.wobbleFactor[fragmentIndex] = max(
             old,
             1.0 +
-                distRelation *
+                additionalDistRelation *
                     (1 -
                         (i * i * i).abs() /
                             (fragmentRange * fragmentRange * fragmentRange)
                                 .abs()));
+        colliderCellWall.strengthFactor[fragmentIndex] = 1.0 -
+            additionalDistRelation *
+                (1 -
+                    (i * i * i).abs() /
+                        (fragmentRange * fragmentRange * fragmentRange).abs());
       }
     }
   }
@@ -631,8 +680,7 @@ class WobbleSystem extends EntityProcessingSystem {
 
     var wobbleFactor = w.wobbleFactor;
     for (int i = 0; i < wobbleFactor.length; i++) {
-      wobbleFactor[i] =
-          1.0 + (wobbleFactor[i] - 1.0) * (1 - 0.999 * world.delta);
+      wobbleFactor[i] = 0.2 + 0.8 * wobbleFactor[i];
     }
   }
 }

@@ -59,6 +59,7 @@ class Game extends GameBase {
         new PlayerRenderingSystem(ctx),
         new InputHandlingSystem(canvas),
         new ThrusterHandlingSystem(),
+        new ThrusterCellWallWeakeningSystem(),
         new EatenByVelocitySystem(),
         new FoodGrowingSystem(),
         new FoodCollectionSystem(),
