@@ -308,6 +308,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
 
     var radiusSum = colliderSize.radius + entitySize.radius;
     var dist = sqrt(distX * distX + distY * distY);
+    var distRelation = (radiusSum - dist) / entitySize.radius;
     if (dist < colliderSize.radius - entitySize.radius) {
       if (!ebm.has(entity)) {
         entity
@@ -320,19 +321,57 @@ class EntityInteractionSystem extends EntityProcessingSystem {
         ..addComponent(new EatenBy(colliderEntity))
         ..removeComponent(Growing)
         ..changedInWorld();
-      var distRelation = (dist + entitySize.radius - colliderSize.radius) /
-          colliderSize.radius;
+      var additionalDistRelation =
+          (dist + entitySize.radius - colliderSize.radius) /
+              colliderSize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var fragmentIndex = (fragment + i) % circleFragments;
         var old = colliderWobble.wobbleFactor[fragmentIndex];
         colliderWobble.wobbleFactor[fragmentIndex] = max(
             old,
             1.0 +
-                distRelation * (1 - (i * i) / (fragmentRange * fragmentRange)));
+                additionalDistRelation *
+                    (1 - (i * i) / (fragmentRange * fragmentRange)));
+      }
+    } else if (dist < colliderSize.radius + entitySize.radius / 2) {
+      var additionalDistRelation =
+          (dist + entitySize.radius - colliderSize.radius) /
+              colliderSize.radius;
+      var pressingEnvelopedRatio =
+          (radiusSum - dist - entitySize.radius / 2) / (entitySize.radius / 2);
+      pressingEnvelopedRatio *= pressingEnvelopedRatio;
+      for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
+        var fragmentIndex = (fragment + i) % circleFragments;
+        var old = colliderWobble.wobbleFactor[fragmentIndex];
+        var enveloped = max(
+            old,
+            1.0 +
+                additionalDistRelation *
+                    (1 - (i * i) / (fragmentRange * fragmentRange)));
+        var pressing = min(
+            old,
+            1.0 -
+                sizeRelation *
+                    distRelation *
+                    (1 -
+                        (i * i * i * i).abs() /
+                            (fragmentRange *
+                                    fragmentRange *
+                                    fragmentRange *
+                                    fragmentRange)
+                                .abs()));
+
+        colliderWobble.wobbleFactor[fragmentIndex] =
+            pressingEnvelopedRatio * enveloped +
+                (1.0 - pressingEnvelopedRatio) * pressing;
+        colliderCellWall.strengthFactor[fragmentIndex] = 1.0 -
+            distRelation *
+                (1 -
+                    (i * i * i).abs() /
+                        (fragmentRange * fragmentRange * fragmentRange).abs());
       }
     } else if (dist < radiusSum && !ebm.has(entity)) {
       var v = vm[entity];
-      var distRelation = (radiusSum - dist) / entitySize.radius;
       var factor = 0.9 * world.delta;
       v.rotational = v.rotational * (1.0 - factor) -
           vm[colliderEntity].rotational * factor * sizeRelation;
@@ -353,15 +392,15 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                                 .abs()));
         colliderCellWall.strengthFactor[fragmentIndex] = 1.0 -
             distRelation *
-                (1 - (i * i * i).abs() / (fragmentRange * fragmentRange * fragmentRange).abs());
+                (1 -
+                    (i * i * i).abs() /
+                        (fragmentRange * fragmentRange * fragmentRange).abs());
       }
     } else if (dist > radiusSum + entitySize.radius) {
       entity
         ..removeComponent(CollisionWith)
         ..changedInWorld();
     } else if (ebm.has(entity)) {
-      var distRelation = (dist + entitySize.radius - colliderSize.radius) /
-          colliderSize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var fragmentIndex = (fragment + i) % circleFragments;
         var old = colliderWobble.wobbleFactor[fragmentIndex];
@@ -592,7 +631,8 @@ class WobbleSystem extends EntityProcessingSystem {
 
     var wobbleFactor = w.wobbleFactor;
     for (int i = 0; i < wobbleFactor.length; i++) {
-      wobbleFactor[i] = 1.0 + (wobbleFactor[i] - 1.0) * (1 - 0.999 * world.delta);
+      wobbleFactor[i] =
+          1.0 + (wobbleFactor[i] - 1.0) * (1 - 0.999 * world.delta);
     }
   }
 }
@@ -608,7 +648,8 @@ class CellWallSystem extends EntityProcessingSystem {
 
     var strengthFactor = cw.strengthFactor;
     for (int i = 0; i < strengthFactor.length; i++) {
-      strengthFactor[i] = 1.0 + (strengthFactor[i] - 1.0) * (1 - 0.999 * world.delta);
+      strengthFactor[i] =
+          1.0 + (strengthFactor[i] - 1.0) * (1 - 0.999 * world.delta);
     }
   }
 }
