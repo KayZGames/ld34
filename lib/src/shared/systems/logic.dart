@@ -440,7 +440,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                     (i * i * i).abs() /
                         (fragmentRange * fragmentRange * fragmentRange).abs());
       }
-    } else if (dist > radiusSum + entitySize.radius) {
+    } else if (dist > radiusSum + entitySize.radius || dist > 2 * colliderSize.radius) {
       entity
         ..removeComponent(CollisionWith)
         ..changedInWorld();
