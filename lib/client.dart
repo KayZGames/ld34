@@ -33,7 +33,7 @@ class Game extends GameBase {
       new Velocity(0.0, 0.0, 0.0),
       new Player(),
       new Wobble(),
-      new CellWall(1.0)
+      new CellWall(5.0)
     ]);
     tm.register(player, playerTag);
 
