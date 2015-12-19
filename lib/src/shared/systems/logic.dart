@@ -280,6 +280,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
   Mapper<CollisionWith> cm;
   Mapper<EatenBy> ebm;
   Mapper<Velocity> vm;
+  Mapper<CellWall> cwm;
 
   double angleToSegmentFactor = circleFragments / (2 * PI);
 
@@ -294,6 +295,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
     var colliderSize = sm[colliderEntity];
     var colliderWobble = wm[colliderEntity];
     var colliderOrientation = om[colliderEntity];
+    var colliderCellWall = cwm[colliderEntity];
 
     var entityPos = pm[entity];
     var entitySize = sm[entity];
@@ -302,11 +304,10 @@ class EntityInteractionSystem extends EntityProcessingSystem {
     var angle = atan2(distY, distX) - colliderOrientation.angle;
     var fragment = (angle * angleToSegmentFactor).round();
     var sizeRelation = entitySize.radius / colliderSize.radius;
-    var fragmentRange = (sizeRelation * circleFragments ~/ 4).round();
+    var fragmentRange = (sizeRelation * circleFragments ~/ 4).round() + 1;
 
-    var distSqr = distX * distX + distY * distY;
     var radiusSum = colliderSize.radius + entitySize.radius;
-    var dist = sqrt(distSqr);
+    var dist = sqrt(distX * distX + distY * distY);
     if (dist < colliderSize.radius - entitySize.radius) {
       if (!ebm.has(entity)) {
         entity
@@ -322,27 +323,39 @@ class EntityInteractionSystem extends EntityProcessingSystem {
       var distRelation = (dist + entitySize.radius - colliderSize.radius) /
           colliderSize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
-        var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
-        colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
+        var fragmentIndex = (fragment + i) % circleFragments;
+        var old = colliderWobble.wobbleFactor[fragmentIndex];
+        colliderWobble.wobbleFactor[fragmentIndex] = max(
             old,
             1.0 +
                 distRelation * (1 - (i * i) / (fragmentRange * fragmentRange)));
       }
     } else if (dist < radiusSum && !ebm.has(entity)) {
       var v = vm[entity];
+      var distRelation = (radiusSum - dist) / entitySize.radius;
       var factor = 0.9 * world.delta;
-      v.rotational = v.rotational * (1.0 - factor) - vm[colliderEntity].rotational * factor * sizeRelation;
-      var distRelation = 1.0 - (dist - colliderSize.radius) / entitySize.radius;
+      v.rotational = v.rotational * (1.0 - factor) -
+          vm[colliderEntity].rotational * factor * sizeRelation;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
-        var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
-        colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = min(
+        var fragmentIndex = (fragment + i) % circleFragments;
+        var old = colliderWobble.wobbleFactor[fragmentIndex];
+        colliderWobble.wobbleFactor[fragmentIndex] = min(
             old,
             1.0 -
                 sizeRelation *
                     distRelation *
-                    (1 - (i * i * i * i).abs() / (fragmentRange * fragmentRange * fragmentRange * fragmentRange).abs()));
+                    (1 -
+                        (i * i * i * i).abs() /
+                            (fragmentRange *
+                                    fragmentRange *
+                                    fragmentRange *
+                                    fragmentRange)
+                                .abs()));
+        colliderCellWall.strengthFactor[fragmentIndex] = 1.0 -
+            distRelation *
+                (1 - (i * i * i).abs() / (fragmentRange * fragmentRange * fragmentRange).abs());
       }
-    } else if (sqrt(distSqr) > radiusSum + entitySize.radius) {
+    } else if (dist > radiusSum + entitySize.radius) {
       entity
         ..removeComponent(CollisionWith)
         ..changedInWorld();
@@ -350,8 +363,9 @@ class EntityInteractionSystem extends EntityProcessingSystem {
       var distRelation = (dist + entitySize.radius - colliderSize.radius) /
           colliderSize.radius;
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
-        var old = colliderWobble.wobbleFactor[(fragment + i) % circleFragments];
-        colliderWobble.wobbleFactor[(fragment + i) % circleFragments] = max(
+        var fragmentIndex = (fragment + i) % circleFragments;
+        var old = colliderWobble.wobbleFactor[fragmentIndex];
+        colliderWobble.wobbleFactor[fragmentIndex] = max(
             old,
             1.0 +
                 distRelation *
@@ -567,9 +581,10 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
   bool checkProcessing() => true;
 }
 
-class RandomWobbleSystem extends EntityProcessingSystem {
+class WobbleSystem extends EntityProcessingSystem {
   Mapper<Wobble> wm;
-  RandomWobbleSystem() : super(Aspect.getAspectForAllOf([Wobble]));
+
+  WobbleSystem() : super(Aspect.getAspectForAllOf([Wobble]));
 
   @override
   void processEntity(Entity entity) {
@@ -577,8 +592,23 @@ class RandomWobbleSystem extends EntityProcessingSystem {
 
     var wobbleFactor = w.wobbleFactor;
     for (int i = 0; i < wobbleFactor.length; i++) {
-      wobbleFactor[i] = 1.0;
-//          1.0 + (wobbleFactor[i] - 1.0) * (1 - 0.999 * world.delta);
+      wobbleFactor[i] = 1.0 + (wobbleFactor[i] - 1.0) * (1 - 0.999 * world.delta);
+    }
+  }
+}
+
+class CellWallSystem extends EntityProcessingSystem {
+  Mapper<CellWall> cwm;
+
+  CellWallSystem() : super(Aspect.getAspectForAllOf([CellWall]));
+
+  @override
+  void processEntity(Entity entity) {
+    var cw = cwm[entity];
+
+    var strengthFactor = cw.strengthFactor;
+    for (int i = 0; i < strengthFactor.length; i++) {
+      strengthFactor[i] = 1.0 + (strengthFactor[i] - 1.0) * (1 - 0.999 * world.delta);
     }
   }
 }

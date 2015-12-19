@@ -68,7 +68,8 @@ class Game extends GameBase {
         new ThrusterParticleEmissionSystem(),
         new FarAwayEntityDestructionSystem(),
         new DamacreatSpawner(),
-        new RandomWobbleSystem(),
+        new WobbleSystem(),
+        new CellWallSystem(),
         new EntityInteractionSystem(),
       ],
       GameBase.physics: []
