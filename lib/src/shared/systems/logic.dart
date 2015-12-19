@@ -182,11 +182,13 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     var x2 = p.x +
         s.radius *
             1.0 *
-            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) * w2;
+            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) *
+            w2;
     var y2 = p.y +
         s.radius *
             1.0 *
-            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) * w2;
+            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) *
+            w2;
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
     var vx = v.value * cos(v.angle) +
         50.0 * cos(o.angle - PI) +
@@ -268,8 +270,9 @@ class HeartbeatSystem extends EntityProcessingSystem {
     var c = cm[entity];
     var s = sm[entity];
 
-    var factor = sin(time * 5 * playerRadius / s.realRadius);
-    factor = 1.0 + 0.025 * max(-0.2, factor * factor * factor);
+    var factor = cos(sin(time * 3 * playerRadius / s.realRadius) +
+        time * 3 * playerRadius / s.realRadius);
+    factor = 0.9875 + 0.025 * factor;
     c.setLightness(c.l * factor * 1.05);
     c.a = c.realAlpha - 0.1 * factor;
     s.radius = s.realRadius * factor;
