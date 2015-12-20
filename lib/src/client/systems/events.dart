@@ -4,8 +4,9 @@ part of client;
 class InputHandlingSystem extends GenericInputHandlingSystem {
   CanvasElement canvas;
   Mapper<Thruster> tm;
+  GameStateManager gsm;
 
-  bool leftClick, rightClick;
+  bool leftClick, rightClick, lockCamera;
   InputHandlingSystem(this.canvas) : super(Aspect.getAspectForAllOf([Thruster, Player]));
 
   @override
@@ -21,6 +22,10 @@ class InputHandlingSystem extends GenericInputHandlingSystem {
     var t = tm[entity];
     t.left = keyState[KeyCode.F] || leftClick;
     t.right = keyState[KeyCode.J] || rightClick;
+    if (isPressed(KeyCode.F4)) {
+      gsm.lockCamera = !gsm.lockCamera;
+      unpress[KeyCode.F4] = true;
+    }
   }
 
   void handleMouseDown(MouseEvent event) {
