@@ -30,9 +30,11 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
     items[offset + 5] = c.a / 2;
     for (int i = 0; i < circleFragments; i++) {
       var baseOffset = offset + valuesPerItem + valuesPerItem * i;
-      var radius = (s.radius - cw.baseStrength * cw.strengthFactor[i]) * w.wobbleFactor[i];
+      var radius = (s.radius - cw.baseStrength * cw.strengthFactor[i]) *
+          w.wobbleFactor[i];
       var angle = o.angle + 2 * PI * i / circleFragments;
-      createCircleVertex(baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
+      createCircleVertex(
+          baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
       items[baseOffset + 5] /= w.wobbleFactor[i];
 
       // inner triangle
@@ -40,9 +42,13 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
       indices[indicesOffset + i * 9 + 1] = itemOffset + 1 + i;
       indices[indicesOffset + i * 9 + 2] = itemOffset + 2 + i;
 
-      baseOffset = offset + valuesPerItem + valuesPerItem * i + circleFragments * valuesPerItem;
+      baseOffset = offset +
+          valuesPerItem +
+          valuesPerItem * i +
+          circleFragments * valuesPerItem;
       radius = s.radius * w.wobbleFactor[i];
-      createCircleVertex(baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
+      createCircleVertex(
+          baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
       items[baseOffset + 5] = 1.0 * cw.strengthFactor[i];
 
       // triangle 1 of cell wall
@@ -56,27 +62,35 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
     }
     createThrusters(offset, s, w, cw, o, p);
 
-    indices[indicesOffset + circleFragments * 9 - 1] = itemOffset + circleFragments + 1;
+    indices[indicesOffset + circleFragments * 9 - 1] =
+        itemOffset + circleFragments + 1;
     indices[indicesOffset + circleFragments * 9 - 2] = itemOffset + 1;
-    indices[indicesOffset + circleFragments * 9 - 4] = itemOffset + circleFragments + 1;
+    indices[indicesOffset + circleFragments * 9 - 4] =
+        itemOffset + circleFragments + 1;
     indices[indicesOffset + circleFragments * 9 - 7] = itemOffset + 1;
   }
 
-  void createThrusters(int offset, Size s, Wobble w, CellWall cw, Orientation o, Position p) {
+  void createThrusters(
+      int offset, Size s, Wobble w, CellWall cw, Orientation o, Position p) {
     var i = (3 / 8 * circleFragments).truncate();
     createThruster(offset, i, s, w, cw, o, p);
     i = (5 / 8 * circleFragments).truncate();
     createThruster(offset, i, s, w, cw, o, p);
   }
 
-  void createThruster(int offset, int i, Size s, Wobble w, CellWall cw, Orientation o, Position p) {
+  void createThruster(int offset, int i, Size s, Wobble w, CellWall cw,
+      Orientation o, Position p) {
     var baseOffset = offset + valuesPerItem + valuesPerItem * i;
-    var radius = (s.radius - cw.baseStrength * cw.strengthFactor[i]) * w.wobbleFactor[i];
+    var radius =
+        (s.radius - cw.baseStrength * cw.strengthFactor[i]) * w.wobbleFactor[i];
     var angle = o.angle + 2 * PI * i / circleFragments;
     items[baseOffset] = p.x + radius * 1.1 * cos(angle);
     items[baseOffset + 1] = p.y + radius * 1.1 * sin(angle);
 
-    baseOffset = offset + valuesPerItem + valuesPerItem * i + circleFragments * valuesPerItem;
+    baseOffset = offset +
+        valuesPerItem +
+        valuesPerItem * i +
+        circleFragments * valuesPerItem;
     radius = s.radius * w.wobbleFactor[i];
     items[baseOffset] = p.x + radius * 1.1 * cos(angle);
     items[baseOffset + 1] = p.y + radius * 1.1 * sin(angle);
@@ -85,7 +99,8 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
   @override
   void updateLength(int length) {
     items = new Float32List(length * (verticeCount + 1) * valuesPerItem);
-    indices = new Uint16List(length * circleFragments * 3 * trianglePerFragment);
+    indices =
+        new Uint16List(length * circleFragments * 3 * trianglePerFragment);
   }
 }
 
@@ -148,7 +163,8 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
       var baseOffset = offset + valuesPerItem + valuesPerItem * i;
       var radius = s.radius * w.wobbleFactor[i];
       var angle = o.angle + 2 * PI * i / verticeCount;
-      createCircleVertex(baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
+      createCircleVertex(
+          baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
 
       indices[indicesOffset + i * 3] = itemOffset;
       indices[indicesOffset + i * 3 + 1] = itemOffset + 1 + i;
@@ -158,7 +174,8 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     indices[indicesOffset + verticeCount * 3 - 1] = itemOffset + 1;
   }
 
-  void createCircleVertex(int baseOffset, Position p, double radius, double angle, Color c, int i, int indicesOffset, int itemOffset) {
+  void createCircleVertex(int baseOffset, Position p, double radius,
+      double angle, Color c, int i, int indicesOffset, int itemOffset) {
     items[baseOffset] = p.x + radius * cos(angle);
     items[baseOffset + 1] = p.y + radius * sin(angle);
     items[baseOffset + 2] = c.r;
@@ -243,4 +260,74 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
 
   @override
   String get fShaderFile => 'ParticleRenderingSystem';
+}
+
+class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
+  WebGlViewProjectionMatrixManager vpmm;
+  TagManager tm;
+  Mapper<Position> pm;
+  GameStateManager gsm;
+
+  double offsetX = -500000 + random.nextDouble() * 1000000.0;
+  double offsetY = -500000 + random.nextDouble() * 1000000.0;
+  Float32List rgb = new Float32List.fromList([0.0, 0.0, 0.0]);
+
+  BackgroundRenderingSystemBase(RenderingContext gl) : super(gl);
+
+  @override
+  void render() {
+    var p = pm[tm.getEntity(playerTag)];
+    var zoom = 1.0;
+    var size = max(gsm.width, gsm.height) / zoom;
+    Float32List background = new Float32List.fromList([
+      -size / 2 + p.x + offsetX,
+      -size / 2 + p.y + offsetY,
+      -size / 2 + p.x + offsetX,
+      size / 2 + p.y + offsetY,
+      size / 2 + p.x + offsetX,
+      size / 2 + p.y + offsetY,
+      size / 2 + p.x + offsetX,
+      -size / 2 + p.y + offsetY
+    ]);
+    var viewProjectionMatrix = vpmm.create2dViewProjectionMatrix();
+    viewProjectionMatrix.translate(p.x, p.y);
+    viewProjectionMatrix.scale(zoom, zoom);
+    viewProjectionMatrix.translate(-p.x, -p.y);
+    viewProjectionMatrix.translate(-offsetX, -offsetY);
+
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
+        false, viewProjectionMatrix.storage);
+    gl.uniform4f(gl.getUniformLocation(program, 'uDimension'),
+        gsm.width.toDouble(), gsm.height.toDouble(), 0.0, 0.0);
+    gl.uniform4f(
+        gl.getUniformLocation(program, 'uPosition'), p.x, p.y, 0.0, 0.0);
+    gl.uniform3fv(gl.getUniformLocation(program, 'uRgb'), rgb);
+    gl.uniform1f(gl.getUniformLocation(program, 'uTime'), time);
+    buffer('aPosition', background, 2);
+    gl.drawArrays(TRIANGLE_FAN, 0, 4);
+  }
+
+  @override
+  String get vShaderFile => 'BackgroundRenderingSystem';
+  @override
+  String get fShaderFile => 'BackgroundRenderingSystem';
+}
+
+class BackgroundRenderingSystemLayerRed extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayerRed(RenderingContext gl) : super(gl) {
+    rgb[0] = random.nextDouble();
+  }
+}
+
+class BackgroundRenderingSystemLayerGreen
+    extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayerGreen(RenderingContext gl) : super(gl) {
+    rgb[1] = random.nextDouble();
+  }
+}
+
+class BackgroundRenderingSystemLayerBlue extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayerBlue(RenderingContext gl) : super(gl) {
+    rgb[2] = random.nextDouble();
+  }
 }
