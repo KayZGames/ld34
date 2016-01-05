@@ -10,4 +10,5 @@ better chance at surviving in the hostile environment that is Dark Matter.
 It's eat or be eaten. Survive! Grow! Dominate!
 
 [Post Compo version of Damacreat](http://kayzgames.itch.io/damacreat)
-[8riginal 48h compo version of Damacreat](http://kayzgames.github.io/ld34)
+
+[Original 48h compo version of Damacreat](http://kayzgames.github.io/ld34)
