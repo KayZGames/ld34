@@ -82,12 +82,6 @@ class Game extends GameBase {
     };
   }
 
-
-  void update({double time}) {
-    super.update(time: time);
-    print(time);
-  }
-
   void handleResize(int width, int height) {
     width = max(800, width);
     height = max(600, height);
