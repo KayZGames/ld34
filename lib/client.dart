@@ -52,9 +52,10 @@ class Game extends GameBase {
         new MovementSystem(),
         new HeartbeatSystem(),
         new WebGlCanvasCleaningSystem(ctx),
-        new BackgroundRenderingSystemLayerRed(ctx),
-        new BackgroundRenderingSystemLayerGreen(ctx),
-        new BackgroundRenderingSystemLayerBlue(ctx),
+        new BackgroundRenderingSystemLayer0(ctx),
+        new BackgroundRenderingSystemLayer1(ctx),
+        new BackgroundRenderingSystemLayer2(ctx),
+        new BackgroundRenderingSystemLayer3(ctx),
         new ThrusterParticleColorModificationSystem(),
         new FoodRenderingSystem(ctx),
         new ParticleRenderingSystem(ctx),
@@ -75,9 +76,16 @@ class Game extends GameBase {
         new WobbleSystem(),
         new CellWallSystem(),
         new EntityInteractionSystem(),
+//        new FpsPrintingSystem()
       ],
       GameBase.physics: []
     };
+  }
+
+
+  void update({double time}) {
+    super.update(time: time);
+    print(time);
   }
 
   void handleResize(int width, int height) {

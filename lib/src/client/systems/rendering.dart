@@ -271,6 +271,7 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
   double offsetX = -500000 + random.nextDouble() * 1000000.0;
   double offsetY = -500000 + random.nextDouble() * 1000000.0;
   Float32List rgb = new Float32List.fromList([0.0, 0.0, 0.0]);
+  double parallaxFactor = 1.0;
 
   BackgroundRenderingSystemBase(RenderingContext gl) : super(gl);
 
@@ -279,20 +280,23 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
     var p = pm[tm.getEntity(playerTag)];
     var zoom = 1.0;
     var size = max(gsm.width, gsm.height) / zoom;
+    var px = p.x * parallaxFactor;
+    var py = p.y * parallaxFactor;
     Float32List background = new Float32List.fromList([
-      -size / 2 + p.x + offsetX,
-      -size / 2 + p.y + offsetY,
-      -size / 2 + p.x + offsetX,
-      size / 2 + p.y + offsetY,
-      size / 2 + p.x + offsetX,
-      size / 2 + p.y + offsetY,
-      size / 2 + p.x + offsetX,
-      -size / 2 + p.y + offsetY
+      -size / 2 + px + offsetX,
+      -size / 2 + py + offsetY,
+      -size / 2 + px + offsetX,
+      size / 2 + py + offsetY,
+      size / 2 + px + offsetX,
+      size / 2 + py + offsetY,
+      size / 2 + px + offsetX,
+      -size / 2 + py + offsetY
     ]);
-    var viewProjectionMatrix = vpmm.create2dViewProjectionMatrix();
-    viewProjectionMatrix.translate(p.x, p.y);
+    var viewProjectionMatrix =
+        vpmm.create2dViewProjectionMatrixForPosition(px, py);
+    viewProjectionMatrix.translate(px, py);
     viewProjectionMatrix.scale(zoom, zoom);
-    viewProjectionMatrix.translate(-p.x, -p.y);
+    viewProjectionMatrix.translate(-px, -py);
     viewProjectionMatrix.translate(-offsetX, -offsetY);
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
@@ -313,21 +317,36 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
   String get fShaderFile => 'BackgroundRenderingSystem';
 }
 
-class BackgroundRenderingSystemLayerRed extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayerRed(RenderingContext gl) : super(gl) {
+class BackgroundRenderingSystemLayer0 extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayer0(RenderingContext gl) : super(gl) {
     rgb[0] = random.nextDouble();
-  }
-}
-
-class BackgroundRenderingSystemLayerGreen
-    extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayerGreen(RenderingContext gl) : super(gl) {
     rgb[1] = random.nextDouble();
+    rgb[2] = random.nextDouble();
+    parallaxFactor = 0.8;
   }
 }
 
-class BackgroundRenderingSystemLayerBlue extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayerBlue(RenderingContext gl) : super(gl) {
+class BackgroundRenderingSystemLayer1 extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayer1(RenderingContext gl) : super(gl) {
+    rgb[0] = random.nextDouble();
+    rgb[1] = random.nextDouble();
     rgb[2] = random.nextDouble();
+  }
+}
+
+class BackgroundRenderingSystemLayer2 extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayer2(RenderingContext gl) : super(gl) {
+    rgb[0] = random.nextDouble();
+    rgb[1] = random.nextDouble();
+    rgb[2] = random.nextDouble();
+  }
+}
+
+class BackgroundRenderingSystemLayer3 extends BackgroundRenderingSystemBase {
+  BackgroundRenderingSystemLayer3(RenderingContext gl) : super(gl) {
+    rgb[0] = random.nextDouble();
+    rgb[1] = random.nextDouble();
+    rgb[2] = random.nextDouble();
+    parallaxFactor = 1.2;
   }
 }

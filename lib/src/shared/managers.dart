@@ -14,6 +14,11 @@ class WebGlViewProjectionMatrixManager extends Manager {
   Matrix4 create2dViewProjectionMatrix() {
     var playerEntity = tm.getEntity(playerTag);
     var p = pm[playerEntity];
+    return create2dViewProjectionMatrixForPosition(p.x, p.y);
+  }
+
+  Matrix4 create2dViewProjectionMatrixForPosition(double px, double py) {
+    var playerEntity = tm.getEntity(playerTag);
     var o = om[playerEntity];
     var angle = 0.0;
     var viewMatrix = new Matrix4.identity();
@@ -34,13 +39,13 @@ class WebGlViewProjectionMatrixManager extends Manager {
     } else {
       height = width / factor;
     }
-    setOrthographicMatrix(twodOrthographicMatrix, p.x - width / 2,
-        p.x + width / 2, p.y - height / 2, p.y + height / 2, 250, -250);
+    setOrthographicMatrix(twodOrthographicMatrix, px - width / 2,
+        px + width / 2, py - height / 2, py + height / 2, 250, -250);
     if (gsm.lockCamera) {
-      twodOrthographicMatrix.translate(p.x, p.y);
+      twodOrthographicMatrix.translate(px, py);
       twodOrthographicMatrix.rotate(
           new Vector3(0.0, 0.0, 1.0), (PI / 2 - o.angle) % (2 * PI));
-      twodOrthographicMatrix.translate(-p.x, -p.y);
+      twodOrthographicMatrix.translate(-px, -py);
     }
 
 //  return threedViewProjextionMatrix * camera.three + twodOrthographicMatrix * camera.two;
