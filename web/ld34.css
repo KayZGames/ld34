@@ -16,7 +16,29 @@ html, body {
     align-items: center;
 }
 
-#gameContainer {
+.spinner {
+    margin: 10px auto 10px auto;
+    height: 28px;
+    width: 28px;
+    animation: rotate 1.2s infinite linear;
+    -webkit-animation: rotate 1.2s infinite linear;
+    border: 8px solid darkgreen;
+    border-right-color: transparent;
+    border-radius: 50%;
+}
+
+@keyframes rotate {
+    0%    { transform: rotate(0deg); }
+    100%  { transform: rotate(360deg); }
+}
+
+@-webkit-keyframes rotate {
+    0%    { transform: rotate(0deg); }
+    100%  { transform: rotate(360deg); }
+}
+
+#startGame {
+    display: none;
 }
 
 p {
