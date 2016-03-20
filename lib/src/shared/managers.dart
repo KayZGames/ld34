@@ -28,8 +28,8 @@ class WebGlViewProjectionMatrixManager extends Manager {
         new Vector3(400.0 + 100 * sin(angle), 550.0, -150.0),
         new Vector3(400.0, 200.0, 150.0),
         new Vector3(0.0, -1.0, 0.0));
-    setPerspectiveMatrix(projMatrix, PI / 2, 4 / 3, 1, 1000);
-    var threedViewProjextionMatrix = projMatrix * viewMatrix;
+    setPerspectiveMatrix(projMatrix, PI / 2, 4 / 3, 1.0, 1000.0);
+//    var threedViewProjextionMatrix = projMatrix * viewMatrix;
     var twodOrthographicMatrix = new Matrix4.identity();
     var width = 800;
     var height = 600;
@@ -40,7 +40,7 @@ class WebGlViewProjectionMatrixManager extends Manager {
       height = width / factor;
     }
     setOrthographicMatrix(twodOrthographicMatrix, px - width / 2,
-        px + width / 2, py - height / 2, py + height / 2, 250, -250);
+        px + width / 2, py - height / 2, py + height / 2, 250.0, -250.0);
     if (gsm.lockCamera) {
       twodOrthographicMatrix.translate(px, py);
       twodOrthographicMatrix.rotate(
