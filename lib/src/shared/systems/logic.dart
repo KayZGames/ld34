@@ -190,11 +190,11 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
             sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) *
             w2;
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
-    var vx = v.value * cos(v.angle) +
-        50.0 * cos(o.angle - PI) +
+    var vx = v.value * cos(v.angle) -
+        50.0 * cos(o.angle) +
         thrusterSpeed * cos(thrusterAngle + PI / 2);
-    var vy = v.value * sin(v.angle) +
-        50.0 * sin(o.angle - PI) +
+    var vy = v.value * sin(v.angle) -
+        50.0 * sin(o.angle) +
         thrusterSpeed * sin(thrusterAngle + PI / 2);
 
     var velocityAngle = atan2(vy, vx);
