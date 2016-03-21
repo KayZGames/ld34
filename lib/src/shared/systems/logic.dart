@@ -199,13 +199,17 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
 
     var velocityAngle = atan2(vy, vx);
     var speed = vx / cos(velocityAngle);
+    var hsl = rgbToHsl(c.r, c.g, c.b);
+    hsl[2] += 0.1;
+    hsl[1] += 0.3;
+    var rgb = hslToRgb(hsl[0], hsl[1], hsl[2]);
     for (int i = 0; i < s.radius / 10; i++) {
       var posFactor = random.nextDouble();
       world.createAndAddEntity([
         new Position(x1 + posFactor * (x2 - x1), y1 + posFactor * (y2 - y1)),
         new Particle(),
         new ThrusterParticle(),
-        new Color(c.r, c.g, c.b, 1.0),
+        new Color(rgb[0], rgb[1], rgb[2], 1.0),
         new Lifetime(1.0 + 2.0 * random.nextDouble()),
         new Velocity(speed * 0.9 + random.nextDouble() * 0.2,
             velocityAngle - PI / 64 + random.nextDouble() * PI / 32, 0.0)
@@ -226,9 +230,15 @@ class ThrusterParticleColorModificationSystem extends EntityProcessingSystem {
     var c = cm[entity];
     var l = lm[entity];
 
-    c.r = 0.99 * c.r + 0.01 * l.timeLeft / l.timeMax;
-    c.g = 0.99 * c.g + 0.01 * l.timeLeft / l.timeMax;
-    c.b = 0.99 * c.b + 0.01 * l.timeLeft / l.timeMax;
+    var hsl = rgbToHsl(c.realR, c.realG, c.realB);
+    hsl[0] = hsl[0] - 0.2 * (1.0 - l.timeLeft / l.timeMax);
+    hsl[1] = hsl[1] * l.timeLeft / l.timeMax;
+    hsl[2] = hsl[2] * l.timeLeft / l.timeMax;
+    var rgb = hslToRgb(hsl[0], hsl[1], hsl[2]);
+
+    c.r = rgb[0];
+    c.g = rgb[1];
+    c.b = rgb[2];
     c.a = l.timeLeft / l.timeMax;
   }
 }
@@ -440,7 +450,8 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                     (i * i * i).abs() /
                         (fragmentRange * fragmentRange * fragmentRange).abs());
       }
-    } else if (dist > radiusSum + entitySize.radius || dist > 2 * colliderSize.radius) {
+    } else if (dist > radiusSum + entitySize.radius ||
+        dist > 2 * colliderSize.radius) {
       entity
         ..removeComponent(CollisionWith)
         ..changedInWorld();

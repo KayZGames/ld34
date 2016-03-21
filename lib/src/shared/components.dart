@@ -21,12 +21,15 @@ class Size extends Component {
 }
 
 class Color extends Component {
-  double r, g, b, a, l, realAlpha;
+  double r, g, b, a, l, realAlpha, realR, realG, realB;
 
   Color(this.r, this.g, this.b, double a)
       : a = a,
         realAlpha = a {
     this.l = rgbToHsl(r, g, b)[2];
+    this.realR = this.r;
+    this.realG = this.g;
+    this.realB = this.b;
   }
 
   Color.fromHsl(double h, double s, this.l, this.a) {
@@ -34,6 +37,9 @@ class Color extends Component {
     this.r = rgb[0];
     this.g = rgb[1];
     this.b = rgb[2];
+    this.realR = this.r;
+    this.realG = this.g;
+    this.realB = this.b;
     this.realAlpha = a;
   }
 
