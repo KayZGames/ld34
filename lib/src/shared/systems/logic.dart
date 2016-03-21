@@ -524,13 +524,15 @@ class DigestiveSystem extends EntityProcessingSystem {
   Mapper<Size> sm;
   Mapper<Position> pm;
   Mapper<Color> cm;
+  Mapper<Velocity> vm;
 
   DigestiveSystem()
-      : super(Aspect.getAspectForAllOf([EatenBy, Size, Color, Position]));
+      : super(Aspect.getAspectForAllOf([EatenBy, Size, Color, Position, Velocity]));
 
   @override
   void processEntity(Entity entity) {
     var s = sm[entity];
+    var v = vm[entity];
     var eb = ebm[entity];
     var es = sm[eb.eater];
 
@@ -548,6 +550,7 @@ class DigestiveSystem extends EntityProcessingSystem {
           new Particle(),
           new Position(
               p.x + s.realRadius * cos(angle), p.y + s.realRadius * sin(angle)),
+          new Velocity(0.5 * v.value, v.angle, 0.0),
           new Color.fromHsl(hsl[0], hsl[1] + 0.1, hsl[2] + 0.1, 1.0),
           new Lifetime(0.1)
         ]);
