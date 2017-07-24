@@ -1,13 +1,13 @@
 part of client;
 
-
 class InputHandlingSystem extends GenericInputHandlingSystem {
   CanvasElement canvas;
   Mapper<Thruster> tm;
   GameStateManager gsm;
 
-  bool leftClick, rightClick, lockCamera;
-  InputHandlingSystem(this.canvas) : super(Aspect.getAspectForAllOf([Thruster, Player]));
+  bool leftClick = false, rightClick = false, lockCamera = false;
+  InputHandlingSystem(this.canvas)
+      : super(new Aspect.forAllOf([Thruster, Player]));
 
   @override
   void initialize() {
@@ -20,8 +20,8 @@ class InputHandlingSystem extends GenericInputHandlingSystem {
   @override
   void processEntity(Entity entity) {
     var t = tm[entity];
-    t.left = keyState[KeyCode.F] || leftClick;
-    t.right = keyState[KeyCode.J] || rightClick;
+    t.left = keyState[KeyCode.F] ?? leftClick;
+    t.right = keyState[KeyCode.J] ?? rightClick;
     if (isPressed(KeyCode.F4)) {
       gsm.lockCamera = !gsm.lockCamera;
       unpress[KeyCode.F4] = true;
@@ -45,6 +45,4 @@ class InputHandlingSystem extends GenericInputHandlingSystem {
       rightClick = false;
     }
   }
-
-
 }

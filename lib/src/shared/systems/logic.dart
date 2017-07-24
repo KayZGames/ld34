@@ -8,7 +8,7 @@ class ThrusterHandlingSystem extends EntityProcessingSystem {
   final double speed = 20.0;
 
   ThrusterHandlingSystem()
-      : super(Aspect.getAspectForAllOf([Velocity, Thruster, Orientation]));
+      : super(new Aspect.forAllOf([Velocity, Thruster, Orientation]));
 
   @override
   void processEntity(Entity entity) {
@@ -44,7 +44,7 @@ class ThrusterCellWallWeakeningSystem extends EntityProcessingSystem {
   final double cellWallWeakeningFactor = 0.95;
 
   ThrusterCellWallWeakeningSystem()
-      : super(Aspect.getAspectForAllOf([Thruster, CellWall]));
+      : super(new Aspect.forAllOf([Thruster, CellWall]));
 
   @override
   void processEntity(Entity entity) {
@@ -70,7 +70,7 @@ class EatenByVelocitySystem extends EntityProcessingSystem {
   Mapper<Size> sm;
 
   EatenByVelocitySystem()
-      : super(Aspect.getAspectForAllOf([EatenBy, Velocity, Position, Size]));
+      : super(new Aspect.forAllOf([EatenBy, Velocity, Position, Size]));
 
   @override
   void processEntity(Entity entity) {
@@ -118,7 +118,7 @@ class MovementSystem extends EntityProcessingSystem {
   Mapper<Position> pm;
   Mapper<Velocity> vm;
 
-  MovementSystem() : super(Aspect.getAspectForAllOf([Position, Velocity]));
+  MovementSystem() : super(new Aspect.forAllOf([Position, Velocity]));
 
   @override
   void processEntity(Entity entity) {
@@ -140,7 +140,7 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
   Mapper<Wobble> wm;
 
   ThrusterParticleEmissionSystem()
-      : super(Aspect.getAspectForAllOf(
+      : super(new Aspect.forAllOf(
             [Position, Orientation, Thruster, Velocity, Size, Color, Wobble]));
 
   @override
@@ -223,7 +223,7 @@ class ThrusterParticleColorModificationSystem extends EntityProcessingSystem {
   Mapper<Lifetime> lm;
 
   ThrusterParticleColorModificationSystem()
-      : super(Aspect.getAspectForAllOf([ThrusterParticle, Color, Lifetime]));
+      : super(new Aspect.forAllOf([ThrusterParticle, Color, Lifetime]));
 
   @override
   void processEntity(Entity entity) {
@@ -246,7 +246,7 @@ class ThrusterParticleColorModificationSystem extends EntityProcessingSystem {
 class ExpirationSystem extends EntityProcessingSystem {
   Mapper<Lifetime> lm;
 
-  ExpirationSystem() : super(Aspect.getAspectForAllOf([Lifetime]));
+  ExpirationSystem() : super(new Aspect.forAllOf([Lifetime]));
 
   @override
   void processEntity(Entity entity) {
@@ -267,7 +267,7 @@ class HeartbeatSystem extends EntityProcessingSystem {
   double playerRadius;
 
   HeartbeatSystem()
-      : super(Aspect.getAspectForAllOf([Color, Size]).exclude([Particle]));
+      : super(new Aspect.forAllOf([Color, Size])..exclude([Particle]));
 
   @override
   void begin() {
@@ -297,7 +297,7 @@ class FoodCollectionSystem extends EntitySystem {
   Mapper<Orientation> om;
 
   FoodCollectionSystem()
-      : super(Aspect.getAspectForAllOf([Food, Position, Size]).exclude(
+      : super(new Aspect.forAllOf([Food, Position, Size])..exclude(
             [EatenBy, CollisionWith]));
 
   @override
@@ -338,7 +338,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
   double angleToSegmentFactor = circleFragments / (2 * PI);
 
   EntityInteractionSystem()
-      : super(Aspect.getAspectForAllOf(
+      : super(new Aspect.forAllOf(
             [Position, Size, Wobble, Orientation, CollisionWith, Velocity]));
 
   @override
@@ -488,7 +488,7 @@ class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
   bool changes = false;
 
   StillBeingEatenCheckerSystem()
-      : super(Aspect.getAspectForAllOf([EatenBy, Position, Size]));
+      : super(new Aspect.forAllOf([EatenBy, Position, Size]));
 
   @override
   void processEntity(Entity entity) {
@@ -527,7 +527,7 @@ class DigestiveSystem extends EntityProcessingSystem {
   Mapper<Velocity> vm;
 
   DigestiveSystem()
-      : super(Aspect.getAspectForAllOf([EatenBy, Size, Color, Position, Velocity]));
+      : super(new Aspect.forAllOf([EatenBy, Size, Color, Position, Velocity]));
 
   @override
   void processEntity(Entity entity) {
@@ -574,7 +574,7 @@ class FoodGrowingSystem extends EntityProcessingSystem {
 
   FoodGrowingSystem()
       : super(
-            Aspect.getAspectForAllOf([Food, Size, Growing]).exclude([EatenBy]));
+            new Aspect.forAllOf([Food, Size, Growing])..exclude([EatenBy]));
 
   @override
   void processEntity(Entity entity) {
@@ -670,7 +670,7 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
 
   FarAwayEntityDestructionSystem()
       : super(
-            Aspect.getAspectForAllOf([Position]).exclude([Particle, Lifetime]));
+            new Aspect.forAllOf([Position])..exclude([Particle, Lifetime]));
 
   @override
   void processEntities(Iterable<Entity> entities) {
@@ -689,7 +689,7 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
 class WobbleSystem extends EntityProcessingSystem {
   Mapper<Wobble> wm;
 
-  WobbleSystem() : super(Aspect.getAspectForAllOf([Wobble]));
+  WobbleSystem() : super(new Aspect.forAllOf([Wobble]));
 
   @override
   void processEntity(Entity entity) {
@@ -705,7 +705,7 @@ class WobbleSystem extends EntityProcessingSystem {
 class CellWallSystem extends EntityProcessingSystem {
   Mapper<CellWall> cwm;
 
-  CellWallSystem() : super(Aspect.getAspectForAllOf([CellWall]));
+  CellWallSystem() : super(new Aspect.forAllOf([CellWall]));
 
   @override
   void processEntity(Entity entity) {

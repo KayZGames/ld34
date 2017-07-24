@@ -2,7 +2,7 @@ part of shared;
 
 class GameStateManager extends Manager {
   int width, height;
-  bool lockCamera;
+  bool lockCamera = false;
 }
 
 class WebGlViewProjectionMatrixManager extends Manager {
@@ -35,9 +35,9 @@ class WebGlViewProjectionMatrixManager extends Manager {
     var height = 600;
     var factor = gsm.width / gsm.height;
     if (factor > 4 / 3) {
-      width = height * factor;
+      width = (height * factor).toInt();
     } else {
-      height = width / factor;
+      height = width ~/ factor;
     }
     setOrthographicMatrix(twodOrthographicMatrix, px - width / 2,
         px + width / 2, py - height / 2, py + height / 2, 250.0, -250.0);

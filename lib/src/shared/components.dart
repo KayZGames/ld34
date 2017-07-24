@@ -55,6 +55,9 @@ class Color extends Component {
 
 class Thruster extends Component {
   bool left, right;
+  Thruster()
+      : left = false,
+        right = false;
 }
 
 class Velocity extends Component {
@@ -92,6 +95,7 @@ class EatenBy extends Component {
   Entity eater;
   EatenBy(this.eater);
 }
+
 class CollisionWith extends Component {
   Entity collider;
   CollisionWith(this.collider);

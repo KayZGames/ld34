@@ -7,7 +7,7 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
   final int trianglePerFragment = 3;
 
   PlayerRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Player, CellWall]));
+      : super(gl, new Aspect.forAllOf([Player, CellWall]));
 
   @override
   void processEntity(int index, Entity entity) {
@@ -106,12 +106,12 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
 
 class AiRenderingSystem extends CircleRenderingSystem {
   AiRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Ai]));
+      : super(gl, new Aspect.forAllOf([Ai]));
 }
 
 class FoodRenderingSystem extends CircleRenderingSystem {
   FoodRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Food]).exclude([Ai]));
+      : super(gl, new Aspect.forAllOf([Food])..exclude([Ai]));
 
   void processEntity(int index, Entity entity) {
     super.processEntity(index, entity);
@@ -137,7 +137,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   final int valuesPerItem = 6;
 
   CircleRenderingSystem(RenderingContext gl, Aspect aspect)
-      : super(gl, aspect.allOf([Position, Size, Color, Orientation, Wobble])) {
+      : super(gl, aspect..allOf([Position, Size, Color, Orientation, Wobble])) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
 
@@ -217,7 +217,7 @@ class ParticleRenderingSystem extends WebGlRenderingSystem {
   Float32List colors;
 
   ParticleRenderingSystem(RenderingContext gl)
-      : super(gl, Aspect.getAspectForAllOf([Position, Particle, Color]));
+      : super(gl, new Aspect.forAllOf([Position, Particle, Color]));
 
   @override
   void processEntity(int index, Entity entity) {
