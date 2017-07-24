@@ -207,66 +207,12 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   String get fShaderFile => 'PositionRenderingSystem';
 }
 
-class ParticleRenderingSystem extends WebGlRenderingSystem {
-  Mapper<Position> pm;
-  Mapper<Color> cm;
-  WebGlViewProjectionMatrixManager vpmm;
-  TagManager tm;
-
-  Float32List positions;
-  Float32List colors;
-
-  ParticleRenderingSystem(RenderingContext gl)
-      : super(gl, new Aspect.forAllOf([Position, Particle, Color]));
-
-  @override
-  void processEntity(int index, Entity entity) {
-    var p = pm[entity];
-    var c = cm[entity];
-
-    var pOffset = index * 2;
-    var cOffset = index * 4;
-
-    positions[pOffset] = p.x;
-    positions[pOffset + 1] = p.y;
-
-    colors[cOffset] = c.r;
-    colors[cOffset + 1] = c.g;
-    colors[cOffset + 2] = c.b;
-    colors[cOffset + 3] = c.a;
-  }
-
-  @override
-  void render(int length) {
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
-        false, vpmm.create2dViewProjectionMatrix().storage);
-    var p = pm[tm.getEntity(playerTag)];
-    gl.uniform2f(gl.getUniformLocation(program, 'uPlayerPos'), p.x, p.y);
-
-    buffer('aPosition', positions, 2);
-    buffer('aColor', colors, 4);
-
-    gl.drawArrays(POINTS, 0, length);
-  }
-
-  @override
-  void updateLength(int length) {
-    positions = new Float32List(length * 2);
-    colors = new Float32List(length * 4);
-  }
-
-  @override
-  String get vShaderFile => 'ParticleRenderingSystem';
-
-  @override
-  String get fShaderFile => 'ParticleRenderingSystem';
-}
 
 class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
   WebGlViewProjectionMatrixManager vpmm;
   TagManager tm;
   Mapper<Position> pm;
-  GameStateManager gsm;
+  CameraManager cm;
 
   double offsetX = -500000 + random.nextDouble() * 1000000.0;
   double offsetY = -500000 + random.nextDouble() * 1000000.0;
@@ -279,7 +225,7 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
   void render() {
     var p = pm[tm.getEntity(playerTag)];
     var zoom = 1.0;
-    var size = max(gsm.width, gsm.height) / zoom;
+    var size = max(cm.width, cm.height) / zoom;
     var px = p.x * parallaxFactor;
     var py = p.y * parallaxFactor;
     Float32List background = new Float32List.fromList([
@@ -302,7 +248,7 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
     gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
         false, viewProjectionMatrix.storage);
     gl.uniform4f(gl.getUniformLocation(program, 'uDimension'),
-        gsm.width.toDouble(), gsm.height.toDouble(), 0.0, 0.0);
+        cm.width.toDouble(), cm.height.toDouble(), 0.0, 0.0);
     gl.uniform4f(
         gl.getUniformLocation(program, 'uPosition'), p.x, p.y, 0.0, 0.0);
     gl.uniform3fv(gl.getUniformLocation(program, 'uRgb'), rgb);

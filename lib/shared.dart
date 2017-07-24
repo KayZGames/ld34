@@ -6,6 +6,5 @@ part 'src/shared/systems/logic.dart';
 part 'src/shared/managers.dart';
 
 
-const String playerTag = 'player';
 const String damacreatGroup = 'damareats';
 const int circleFragments = 64;

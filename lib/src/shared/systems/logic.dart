@@ -568,7 +568,7 @@ class FoodGrowingSystem extends EntityProcessingSystem {
   Mapper<Growing> gm;
   TagManager tm;
   Mapper<Position> pm;
-  GameStateManager gsm;
+  CameraManager cm;
 
   double totalFood = 0.0;
 
@@ -603,8 +603,8 @@ class FoodGrowingSystem extends EntityProcessingSystem {
     if (totalFood < 500.0) {
       var p = pm[tm.getEntity(playerTag)];
       world.createAndAddEntity([
-        new Position(p.x - gsm.width + random.nextDouble() * gsm.width * 2,
-            p.y - gsm.height + random.nextDouble() * gsm.height * 2),
+        new Position(p.x - cm.width + random.nextDouble() * cm.width * 2,
+            p.y - cm.height + random.nextDouble() * cm.height * 2),
         new Size(0.1),
         new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
         new Food(),
@@ -624,7 +624,7 @@ class DamacreatSpawner extends VoidEntitySystem {
   GroupManager gm;
   Mapper<Position> pm;
   Mapper<Size> sm;
-  GameStateManager gsm;
+  CameraManager cm;
 
   @override
   void processSystem() {
@@ -632,11 +632,11 @@ class DamacreatSpawner extends VoidEntitySystem {
     var playerEntity = tm.getEntity(playerTag);
     var p = pm[playerEntity];
     var s = sm[playerEntity];
-    var x = gsm.width /
+    var x = cm.width /
         2 *
         (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
-    var y = gsm.height /
+    var y = cm.height /
         2 *
         (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
@@ -666,7 +666,7 @@ class DamacreatSpawner extends VoidEntitySystem {
 class FarAwayEntityDestructionSystem extends EntitySystem {
   TagManager tm;
   Mapper<Position> pm;
-  GameStateManager gsm;
+  CameraManager cm;
 
   FarAwayEntityDestructionSystem()
       : super(
@@ -677,8 +677,8 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
     var playerPos = pm[tm.getEntity(playerTag)];
     entities.where((entity) {
       var p = pm[entity];
-      return (playerPos.x - p.x).abs() > gsm.width * 4 ||
-          (playerPos.y - p.y).abs() > gsm.height * 4;
+      return (playerPos.x - p.x).abs() > cm.width * 4 ||
+          (playerPos.y - p.y).abs() > cm.height * 4;
     }).forEach((entity) => entity.deleteFromWorld());
   }
 

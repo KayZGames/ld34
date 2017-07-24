@@ -3,7 +3,7 @@ part of client;
 class InputHandlingSystem extends GenericInputHandlingSystem {
   CanvasElement canvas;
   Mapper<Thruster> tm;
-  GameStateManager gsm;
+  CameraManager gsm;
 
   bool leftClick = false, rightClick = false, lockCamera = false;
   InputHandlingSystem(this.canvas)

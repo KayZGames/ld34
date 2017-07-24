@@ -13,7 +13,7 @@ part 'src/client/systems/rendering.dart';
 
 class Game extends GameBase {
   Game() : super.noAssets('ld34', '#game', 800, 600, webgl: true, depthTest: false) {
-    world.addManager(new GameStateManager());
+    world.addManager(new CameraManager());
     world.addManager(new WebGlViewProjectionMatrixManager());
     world.addManager(new TagManager());
     world.addManager(new GroupManager());
@@ -90,7 +90,7 @@ class Game extends GameBase {
     canvas.style.width = '${width}px';
     canvas.style.height = '${height}px';
     (ctx as RenderingContext).viewport(0, 0, width, height);
-    (world.getManager(GameStateManager) as GameStateManager)
+    (world.getManager(CameraManager) as CameraManager)
       ..width = width
       ..height = height;
   }
