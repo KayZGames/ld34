@@ -6,7 +6,7 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
   final int verticeCount = circleFragments * 2;
   final int trianglePerFragment = 3;
 
-  PlayerRenderingSystem(RenderingContext gl)
+  PlayerRenderingSystem(RenderingContext2 gl)
       : super(gl, new Aspect.forAllOf([Player, CellWall]));
 
   @override
@@ -105,12 +105,12 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
 }
 
 class AiRenderingSystem extends CircleRenderingSystem {
-  AiRenderingSystem(RenderingContext gl)
+  AiRenderingSystem(RenderingContext2 gl)
       : super(gl, new Aspect.forAllOf([Ai]));
 }
 
 class FoodRenderingSystem extends CircleRenderingSystem {
-  FoodRenderingSystem(RenderingContext gl)
+  FoodRenderingSystem(RenderingContext2 gl)
       : super(gl, new Aspect.forAllOf([Food])..exclude([Ai]));
 
   void processEntity(int index, Entity entity) {
@@ -136,7 +136,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   final int verticeCount = circleFragments;
   final int valuesPerItem = 6;
 
-  CircleRenderingSystem(RenderingContext gl, Aspect aspect)
+  CircleRenderingSystem(RenderingContext2 gl, Aspect aspect)
       : super(gl, aspect..allOf([Position, Size, Color, Orientation, Wobble])) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
@@ -219,7 +219,7 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
   Float32List rgb = new Float32List.fromList([0.0, 0.0, 0.0]);
   double parallaxFactor = 1.0;
 
-  BackgroundRenderingSystemBase(RenderingContext gl) : super(gl);
+  BackgroundRenderingSystemBase(RenderingContext2 gl) : super(gl);
 
   @override
   void render() {
@@ -264,16 +264,16 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
 }
 
 class BackgroundRenderingSystemLayer0 extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayer0(RenderingContext gl) : super(gl) {
+  BackgroundRenderingSystemLayer0(RenderingContext2 gl) : super(gl) {
     rgb[0] = random.nextDouble();
     rgb[1] = random.nextDouble();
     rgb[2] = random.nextDouble();
-    parallaxFactor = 0.8;
+    parallaxFactor = 0.3;
   }
 }
 
 class BackgroundRenderingSystemLayer1 extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayer1(RenderingContext gl) : super(gl) {
+  BackgroundRenderingSystemLayer1(RenderingContext2 gl) : super(gl) {
     rgb[0] = random.nextDouble();
     rgb[1] = random.nextDouble();
     rgb[2] = random.nextDouble();
@@ -281,7 +281,7 @@ class BackgroundRenderingSystemLayer1 extends BackgroundRenderingSystemBase {
 }
 
 class BackgroundRenderingSystemLayer2 extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayer2(RenderingContext gl) : super(gl) {
+  BackgroundRenderingSystemLayer2(RenderingContext2 gl) : super(gl) {
     rgb[0] = random.nextDouble();
     rgb[1] = random.nextDouble();
     rgb[2] = random.nextDouble();
@@ -289,10 +289,10 @@ class BackgroundRenderingSystemLayer2 extends BackgroundRenderingSystemBase {
 }
 
 class BackgroundRenderingSystemLayer3 extends BackgroundRenderingSystemBase {
-  BackgroundRenderingSystemLayer3(RenderingContext gl) : super(gl) {
+  BackgroundRenderingSystemLayer3(RenderingContext2 gl) : super(gl) {
     rgb[0] = random.nextDouble();
     rgb[1] = random.nextDouble();
     rgb[2] = random.nextDouble();
-    parallaxFactor = 1.2;
+    parallaxFactor = 3.0;
   }
 }

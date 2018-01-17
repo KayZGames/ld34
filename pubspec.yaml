@@ -2,14 +2,18 @@ name: ld34
 description: A ld34 game
 dependencies:
   browser: any
-  gamedev_helpers:
-    path: ../gamedev_helpers
   dartemis:
-      git:
-        url: git://github.com/denniskaselow/dartemis.git
-        ref: develop
+    git:
+      url: git://github.com/denniskaselow/dartemis.git
+      ref: feature/ddc
   dartemis_transformer:
-    path: ../dartemis_transformer
+    git:
+      url: git://github.com/denniskaselow/dartemis_transformer.git
+      ref: feature/ddc
+  gamedev_helpers:
+    git:
+      url: git://github.com/kayzgames/gamedev_helpers.git
+      ref: feature/ddc
   dart_to_js_script_rewriter: any
 transformers:
 - dart_to_js_script_rewriter

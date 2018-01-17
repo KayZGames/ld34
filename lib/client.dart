@@ -12,7 +12,7 @@ part 'src/client/systems/events.dart';
 part 'src/client/systems/rendering.dart';
 
 class Game extends GameBase {
-  Game() : super.noAssets('ld34', '#game', 800, 600, webgl: true, depthTest: false) {
+  Game() : super.noAssets('ld34', '#game', webgl: true, depthTest: false) {
     world.addManager(new CameraManager());
     world.addManager(new WebGlViewProjectionMatrixManager());
     world.addManager(new TagManager());
@@ -51,16 +51,16 @@ class Game extends GameBase {
       GameBase.rendering: [
         new MovementSystem(),
         new HeartbeatSystem(),
-        new WebGlCanvasCleaningSystem(ctx),
-        new BackgroundRenderingSystemLayer0(ctx),
-        new BackgroundRenderingSystemLayer1(ctx),
-        new BackgroundRenderingSystemLayer2(ctx),
-        new BackgroundRenderingSystemLayer3(ctx),
+        new WebGlCanvasCleaningSystem(gl),
+        new BackgroundRenderingSystemLayer0(gl),
+//        new BackgroundRenderingSystemLayer1(gl),
+//        new BackgroundRenderingSystemLayer2(gl),
         new ThrusterParticleColorModificationSystem(),
-        new FoodRenderingSystem(ctx),
-        new ParticleRenderingSystem(ctx),
-        new AiRenderingSystem(ctx),
-        new PlayerRenderingSystem(ctx),
+        new FoodRenderingSystem(gl),
+        new ParticleRenderingSystem(gl),
+        new AiRenderingSystem(gl),
+        new PlayerRenderingSystem(gl),
+        new BackgroundRenderingSystemLayer3(gl),
         new InputHandlingSystem(canvas),
         new ThrusterHandlingSystem(),
         new ThrusterCellWallWeakeningSystem(),
@@ -89,7 +89,7 @@ class Game extends GameBase {
     canvas.height = height;
     canvas.style.width = '${width}px';
     canvas.style.height = '${height}px';
-    (ctx as RenderingContext).viewport(0, 0, width, height);
+    gl.viewport(0, 0, width, height);
     (world.getManager(CameraManager) as CameraManager)
       ..width = width
       ..height = height;
