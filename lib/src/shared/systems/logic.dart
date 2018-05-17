@@ -370,16 +370,6 @@ class FoodCollectionSystem extends _$FoodCollectionSystem {
   ],
 )
 class EntityInteractionSystem extends _$EntityInteractionSystem {
-  TagManager tagManager;
-  Mapper<Position> positionMapper;
-  Mapper<Size> sizeMapper;
-  Mapper<Wobble> wobbleMapper;
-  Mapper<Orientation> orientationMapper;
-  Mapper<CollisionWith> collisionWithMapper;
-  Mapper<Velocity> velocityMapper;
-  Mapper<EatenBy> eatenByMapper;
-  Mapper<CellWall> cellWallMapper;
-
   double angleToSegmentFactor = circleFragments / (2 * pi);
 
   @override
