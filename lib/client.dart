@@ -2,14 +2,12 @@ library client;
 
 import 'dart:html';
 export 'dart:html';
-import 'dart:typed_data';
-import 'dart:web_gl';
 import 'package:ld34/shared.dart';
-import 'package:gamedev_helpers/gamedev_helpers.dart';
+import 'package:gamedev_helpers/gamedev_helpers.dart' hide Velocity;
 export 'package:gamedev_helpers/gamedev_helpers.dart';
 //part 'src/client/systems/name.dart';
-part 'src/client/systems/events.dart';
-part 'src/client/systems/rendering.dart';
+import 'src/client/systems/events.dart';
+import 'src/client/systems/rendering.dart';
 
 class Game extends GameBase {
   Game() : super.noAssets('ld34', '#game', webgl: true, depthTest: false) {
@@ -29,7 +27,7 @@ class Game extends GameBase {
       new Size(20.0),
       new Color.fromHsl(random.nextDouble(), 0.9, 0.6, 0.4),
       new Thruster(),
-      new Orientation(PI/2),
+      new Orientation(pi/2),
       new Velocity(0.0, 0.0, 0.0),
       new Player(),
       new Wobble(),

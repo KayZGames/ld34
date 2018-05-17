@@ -1,22 +1,33 @@
-part of client;
+import 'dart:typed_data';
+import 'dart:web_gl';
 
-class PlayerRenderingSystem extends CircleRenderingSystem {
-  Mapper<CellWall> cwm;
+import 'package:dartemis/dartemis.dart';
+import 'package:gamedev_helpers/gamedev_helpers.dart';
+import 'package:ld34/shared.dart';
 
+part 'rendering.g.dart';
+
+@Generate(
+  CircleRenderingSystem,
+  allOf: [
+    Player,
+    CellWall,
+  ],
+)
+class PlayerRenderingSystem extends _$PlayerRenderingSystem {
   final int verticeCount = circleFragments * 2;
   final int trianglePerFragment = 3;
 
-  PlayerRenderingSystem(RenderingContext2 gl)
-      : super(gl, new Aspect.forAllOf([Player, CellWall]));
+  PlayerRenderingSystem(RenderingContext2 gl) : super(gl);
 
   @override
   void processEntity(int index, Entity entity) {
-    var p = pm[entity];
-    var s = sm[entity];
-    var c = cm[entity];
-    var o = om[entity];
-    var w = wm[entity];
-    var cw = cwm[entity];
+    var p = positionMapper[entity];
+    var s = sizeMapper[entity];
+    var c = colorMapper[entity];
+    var o = orientationMapper[entity];
+    var w = wobbleMapper[entity];
+    var cw = cellWallMapper[entity];
 
     var itemOffset = index * (verticeCount + 1);
     var offset = index * (verticeCount + 1) * valuesPerItem;
@@ -32,7 +43,7 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
       var baseOffset = offset + valuesPerItem + valuesPerItem * i;
       var radius = (s.radius - cw.baseStrength * cw.strengthFactor[i]) *
           w.wobbleFactor[i];
-      var angle = o.angle + 2 * PI * i / circleFragments;
+      var angle = o.angle + 2 * pi * i / circleFragments;
       createCircleVertex(
           baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
       items[baseOffset + 5] /= w.wobbleFactor[i];
@@ -83,7 +94,7 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
     var baseOffset = offset + valuesPerItem + valuesPerItem * i;
     var radius =
         (s.radius - cw.baseStrength * cw.strengthFactor[i]) * w.wobbleFactor[i];
-    var angle = o.angle + 2 * PI * i / circleFragments;
+    var angle = o.angle + 2 * pi * i / circleFragments;
     items[baseOffset] = p.x + radius * 1.1 * cos(angle);
     items[baseOffset + 1] = p.y + radius * 1.1 * sin(angle);
 
@@ -104,31 +115,50 @@ class PlayerRenderingSystem extends CircleRenderingSystem {
   }
 }
 
-class AiRenderingSystem extends CircleRenderingSystem {
-  AiRenderingSystem(RenderingContext2 gl)
-      : super(gl, new Aspect.forAllOf([Ai]));
+@Generate(
+  CircleRenderingSystem,
+  allOf: [
+    Ai,
+  ],
+)
+class AiRenderingSystem extends _$AiRenderingSystem {
+  AiRenderingSystem(RenderingContext2 gl) : super(gl);
 }
 
-class FoodRenderingSystem extends CircleRenderingSystem {
-  FoodRenderingSystem(RenderingContext2 gl)
-      : super(gl, new Aspect.forAllOf([Food])..exclude([Ai]));
+@Generate(
+  CircleRenderingSystem,
+  allOf: [
+    Food,
+  ],
+  exclude: [
+    Ai,
+  ],
+)
+class FoodRenderingSystem extends _$FoodRenderingSystem {
+  FoodRenderingSystem(RenderingContext2 gl) : super(gl);
 
   void processEntity(int index, Entity entity) {
     super.processEntity(index, entity);
     var offset = index * (verticeCount + 1) * valuesPerItem;
-    var c = cm[entity];
+    var c = colorMapper[entity];
     items[offset + 5] = c.a;
   }
 }
 
-class CircleRenderingSystem extends WebGlRenderingSystem {
-  Mapper<Position> pm;
-  Mapper<Size> sm;
-  Mapper<Color> cm;
-  Mapper<Orientation> om;
-  Mapper<Wobble> wm;
-  WebGlViewProjectionMatrixManager vpmm;
-
+@Generate(
+  WebGlRenderingSystem,
+  allOf: [
+    Position,
+    Size,
+    Color,
+    Orientation,
+    Wobble,
+  ],
+  manager: [
+    WebGlViewProjectionMatrixManager,
+  ],
+)
+class CircleRenderingSystem extends _$CircleRenderingSystem {
   Float32List items;
   Uint16List indices;
   List<Attrib> attribsutes;
@@ -137,17 +167,17 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   final int valuesPerItem = 6;
 
   CircleRenderingSystem(RenderingContext2 gl, Aspect aspect)
-      : super(gl, aspect..allOf([Position, Size, Color, Orientation, Wobble])) {
+      : super(gl, aspect) {
     attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
   }
 
   @override
   void processEntity(int index, Entity entity) {
-    var p = pm[entity];
-    var s = sm[entity];
-    var c = cm[entity];
-    var o = om[entity];
-    var w = wm[entity];
+    var p = positionMapper[entity];
+    var s = sizeMapper[entity];
+    var c = colorMapper[entity];
+    var o = orientationMapper[entity];
+    var w = wobbleMapper[entity];
 
     var itemOffset = index * (verticeCount + 1);
     var offset = index * (verticeCount + 1) * valuesPerItem;
@@ -162,7 +192,7 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
     for (int i = 0; i < verticeCount; i++) {
       var baseOffset = offset + valuesPerItem + valuesPerItem * i;
       var radius = s.radius * w.wobbleFactor[i];
-      var angle = o.angle + 2 * PI * i / verticeCount;
+      var angle = o.angle + 2 * pi * i / verticeCount;
       createCircleVertex(
           baseOffset, p, radius, angle, c, i, indicesOffset, itemOffset);
 
@@ -187,8 +217,12 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
 
   @override
   void render(int length) {
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
-        false, vpmm.create2dViewProjectionMatrix().storage);
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, 'uViewProjection'),
+        false,
+        webGlViewProjectionMatrixManager
+            .create2dViewProjectionMatrix()
+            .storage);
 
     bufferElements(attribsutes, items, indices);
     gl.drawElements(TRIANGLES, indices.length, UNSIGNED_SHORT, 0);
@@ -207,13 +241,18 @@ class CircleRenderingSystem extends WebGlRenderingSystem {
   String get fShaderFile => 'PositionRenderingSystem';
 }
 
-
-class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
-  WebGlViewProjectionMatrixManager vpmm;
-  TagManager tm;
-  Mapper<Position> pm;
-  CameraManager cm;
-
+@Generate(
+  VoidWebGlRenderingSystem,
+  manager: [
+    WebGlViewProjectionMatrixManager,
+    TagManager,
+    CameraManager,
+  ],
+  mapper: [
+    Position,
+  ],
+)
+class BackgroundRenderingSystemBase extends _$BackgroundRenderingSystemBase {
   double offsetX = -500000 + random.nextDouble() * 1000000.0;
   double offsetY = -500000 + random.nextDouble() * 1000000.0;
   Float32List rgb = new Float32List.fromList([0.0, 0.0, 0.0]);
@@ -223,9 +262,9 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
 
   @override
   void render() {
-    var p = pm[tm.getEntity(playerTag)];
+    var p = positionMapper[tagManager.getEntity(playerTag)];
     var zoom = 1.0;
-    var size = max(cm.width, cm.height) / zoom;
+    var size = max(cameraManager.width, cameraManager.height) / zoom;
     var px = p.x * parallaxFactor;
     var py = p.y * parallaxFactor;
     Float32List background = new Float32List.fromList([
@@ -238,8 +277,8 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
       size / 2 + px + offsetX,
       -size / 2 + py + offsetY
     ]);
-    var viewProjectionMatrix =
-        vpmm.create2dViewProjectionMatrixForPosition(px, py);
+    var viewProjectionMatrix = webGlViewProjectionMatrixManager
+        .create2dViewProjectionMatrixForPosition(px, py);
     viewProjectionMatrix.translate(px, py);
     viewProjectionMatrix.scale(zoom, zoom);
     viewProjectionMatrix.translate(-px, -py);
@@ -247,8 +286,12 @@ class BackgroundRenderingSystemBase extends VoidWebGlRenderingSystem {
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uViewProjection'),
         false, viewProjectionMatrix.storage);
-    gl.uniform4f(gl.getUniformLocation(program, 'uDimension'),
-        cm.width.toDouble(), cm.height.toDouble(), 0.0, 0.0);
+    gl.uniform4f(
+        gl.getUniformLocation(program, 'uDimension'),
+        cameraManager.width.toDouble(),
+        cameraManager.height.toDouble(),
+        0.0,
+        0.0);
     gl.uniform4f(
         gl.getUniformLocation(program, 'uPosition'), p.x, p.y, 0.0, 0.0);
     gl.uniform3fv(gl.getUniformLocation(program, 'uRgb'), rgb);

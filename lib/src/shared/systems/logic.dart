@@ -1,20 +1,26 @@
-part of shared;
+import 'package:dartemis/dartemis.dart';
 
-class ThrusterHandlingSystem extends EntityProcessingSystem {
-  Mapper<Velocity> vm;
-  Mapper<Thruster> tm;
-  Mapper<Orientation> om;
+import 'package:gamedev_helpers/gamedev_helpers_shared.dart' hide Velocity;
+import 'package:ld34/shared.dart';
 
+part 'logic.g.dart';
+
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Velocity,
+    Thruster,
+    Orientation,
+  ],
+)
+class ThrusterHandlingSystem extends _$ThrusterHandlingSystem {
   final double speed = 20.0;
-
-  ThrusterHandlingSystem()
-      : super(new Aspect.forAllOf([Velocity, Thruster, Orientation]));
 
   @override
   void processEntity(Entity entity) {
-    var v = vm[entity];
-    var t = tm[entity];
-    var o = om[entity];
+    var v = velocityMapper[entity];
+    var t = thrusterMapper[entity];
+    var o = orientationMapper[entity];
 
     if (t.left && t.right) {
       var currentX = v.value * cos(v.angle);
@@ -37,19 +43,21 @@ class ThrusterHandlingSystem extends EntityProcessingSystem {
   }
 }
 
-class ThrusterCellWallWeakeningSystem extends EntityProcessingSystem {
-  Mapper<CellWall> cwm;
-  Mapper<Thruster> tm;
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    CellWall,
+    Thruster,
+  ],
+)
+class ThrusterCellWallWeakeningSystem
+    extends _$ThrusterCellWallWeakeningSystem {
   final double cellWallWeakeningFactor = 0.95;
-
-  ThrusterCellWallWeakeningSystem()
-      : super(new Aspect.forAllOf([Thruster, CellWall]));
 
   @override
   void processEntity(Entity entity) {
-    var t = tm[entity];
-    var cw = cwm[entity];
+    var t = thrusterMapper[entity];
+    var cw = cellWallMapper[entity];
     var leftThrusterIndex = (3 / 8 * circleFragments).truncate();
     var rightThrusterIndex = (5 / 8 * circleFragments).truncate();
     if (t.left) {
@@ -63,24 +71,25 @@ class ThrusterCellWallWeakeningSystem extends EntityProcessingSystem {
   }
 }
 
-class EatenByVelocitySystem extends EntityProcessingSystem {
-  Mapper<Velocity> vm;
-  Mapper<EatenBy> ebm;
-  Mapper<Position> pm;
-  Mapper<Size> sm;
-
-  EatenByVelocitySystem()
-      : super(new Aspect.forAllOf([EatenBy, Velocity, Position, Size]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    EatenBy,
+    Velocity,
+    Position,
+    Size,
+  ],
+)
+class EatenByVelocitySystem extends _$EatenByVelocitySystem {
   @override
   void processEntity(Entity entity) {
-    var v = vm[entity];
-    var p = pm[entity];
-    var s = sm[entity];
-    var eb = ebm[entity];
-    var veb = vm[eb.eater];
-    var pem = pm[eb.eater];
-    var sem = sm[eb.eater];
+    var v = velocityMapper[entity];
+    var p = positionMapper[entity];
+    var s = sizeMapper[entity];
+    var eb = eatenByMapper[entity];
+    var veb = velocityMapper[eb.eater];
+    var pem = positionMapper[eb.eater];
+    var sem = sizeMapper[eb.eater];
 
     var distX = p.x - pem.x;
     var distY = p.y - pem.y;
@@ -94,10 +103,10 @@ class EatenByVelocitySystem extends EntityProcessingSystem {
 
     var angle = atan2(distY, distX);
 
-    var circularX = veb.rotational * cos(PI / 2 + angle) * dist * 0.8 +
-        veb.rotational.abs() * cos(PI + angle) * dist;
-    var circularY = veb.rotational * sin(PI / 2 + angle) * dist * 0.8 +
-        veb.rotational.abs() * sin(PI + angle) * dist;
+    var circularX = veb.rotational * cos(pi / 2 + angle) * dist * 0.8 +
+        veb.rotational.abs() * cos(pi + angle) * dist;
+    var circularY = veb.rotational * sin(pi / 2 + angle) * dist * 0.8 +
+        veb.rotational.abs() * sin(pi + angle) * dist;
 
     var factor = world.delta * 0.8;
     var circularFactor = world.delta * (1.0 - s.radius / sem.radius) * 0.5;
@@ -114,47 +123,49 @@ class EatenByVelocitySystem extends EntityProcessingSystem {
   }
 }
 
-class MovementSystem extends EntityProcessingSystem {
-  Mapper<Position> pm;
-  Mapper<Velocity> vm;
-
-  MovementSystem() : super(new Aspect.forAllOf([Position, Velocity]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Position,
+    Velocity,
+  ],
+)
+class MovementSystem extends _$MovementSystem {
   @override
   void processEntity(Entity entity) {
-    var p = pm[entity];
-    var v = vm[entity];
+    var p = positionMapper[entity];
+    var v = velocityMapper[entity];
 
     p.x += v.value * cos(v.angle) * world.delta;
     p.y += v.value * sin(v.angle) * world.delta;
   }
 }
 
-class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
-  Mapper<Position> pm;
-  Mapper<Orientation> om;
-  Mapper<Thruster> tm;
-  Mapper<Velocity> vm;
-  Mapper<Size> sm;
-  Mapper<Color> cm;
-  Mapper<Wobble> wm;
-
-  ThrusterParticleEmissionSystem()
-      : super(new Aspect.forAllOf(
-            [Position, Orientation, Thruster, Velocity, Size, Color, Wobble]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Position,
+    Orientation,
+    Thruster,
+    Velocity,
+    Size,
+    Color,
+    Wobble,
+  ],
+)
+class ThrusterParticleEmissionSystem extends _$ThrusterParticleEmissionSystem {
   @override
   void processEntity(Entity entity) {
-    var p = pm[entity];
-    var o = om[entity];
-    var t = tm[entity];
-    var v = vm[entity];
-    var s = sm[entity];
-    var c = cm[entity];
-    var w = wm[entity];
+    var p = positionMapper[entity];
+    var o = orientationMapper[entity];
+    var t = thrusterMapper[entity];
+    var v = velocityMapper[entity];
+    var s = sizeMapper[entity];
+    var c = colorMapper[entity];
+    var w = wobbleMapper[entity];
 
-    var leftThrusterAngle = o.angle + 3 / 4 * PI;
-    var rightThrusterAngle = o.angle - 3 / 4 * PI;
+    var leftThrusterAngle = o.angle + 3 / 4 * pi;
+    var rightThrusterAngle = o.angle - 3 / 4 * pi;
 
     if (t.left) {
       spawnThrusterParticles(p, s, v, c, leftThrusterAngle, o, w, 1);
@@ -182,20 +193,20 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
     var x2 = p.x +
         s.radius *
             1.0 *
-            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) *
+            cos(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * pi) *
             w2;
     var y2 = p.y +
         s.radius *
             1.0 *
-            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * PI) *
+            sin(thrusterAngle + direction * 1 / (circleFragments ~/ 2) * pi) *
             w2;
     var thrusterSpeed = 1.1 * v.rotational * s.radius;
     var vx = v.value * cos(v.angle) -
         50.0 * cos(o.angle) +
-        thrusterSpeed * cos(thrusterAngle + PI / 2);
+        thrusterSpeed * cos(thrusterAngle + pi / 2);
     var vy = v.value * sin(v.angle) -
         50.0 * sin(o.angle) +
-        thrusterSpeed * sin(thrusterAngle + PI / 2);
+        thrusterSpeed * sin(thrusterAngle + pi / 2);
 
     var velocityAngle = atan2(vy, vx);
     var speed = vx / cos(velocityAngle);
@@ -212,23 +223,26 @@ class ThrusterParticleEmissionSystem extends EntityProcessingSystem {
         new Color(rgb[0], rgb[1], rgb[2], 1.0),
         new Lifetime(1.0 + 2.0 * random.nextDouble()),
         new Velocity(speed * 0.9 + random.nextDouble() * 0.2,
-            velocityAngle - PI / 64 + random.nextDouble() * PI / 32, 0.0)
+            velocityAngle - pi / 64 + random.nextDouble() * pi / 32, 0.0)
       ]);
     }
   }
 }
 
-class ThrusterParticleColorModificationSystem extends EntityProcessingSystem {
-  Mapper<Color> cm;
-  Mapper<Lifetime> lm;
-
-  ThrusterParticleColorModificationSystem()
-      : super(new Aspect.forAllOf([ThrusterParticle, Color, Lifetime]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    ThrusterParticle,
+    Color,
+    Lifetime,
+  ],
+)
+class ThrusterParticleColorModificationSystem
+    extends _$ThrusterParticleColorModificationSystem {
   @override
   void processEntity(Entity entity) {
-    var c = cm[entity];
-    var l = lm[entity];
+    var c = colorMapper[entity];
+    var l = lifetimeMapper[entity];
 
     var hsl = rgbToHsl(c.realR, c.realG, c.realB);
     hsl[0] = hsl[0] - 0.2 * (1.0 - l.timeLeft / l.timeMax);
@@ -243,14 +257,16 @@ class ThrusterParticleColorModificationSystem extends EntityProcessingSystem {
   }
 }
 
-class ExpirationSystem extends EntityProcessingSystem {
-  Mapper<Lifetime> lm;
-
-  ExpirationSystem() : super(new Aspect.forAllOf([Lifetime]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Lifetime,
+  ],
+)
+class ExpirationSystem extends _$ExpirationSystem {
   @override
   void processEntity(Entity entity) {
-    var l = lm[entity];
+    var l = lifetimeMapper[entity];
 
     l.timeLeft -= world.delta;
     if (l.timeLeft <= 0.0) {
@@ -259,26 +275,32 @@ class ExpirationSystem extends EntityProcessingSystem {
   }
 }
 
-class HeartbeatSystem extends EntityProcessingSystem {
-  TagManager tm;
-  Mapper<Color> cm;
-  Mapper<Size> sm;
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Color,
+    Size,
+  ],
+  exclude: [
+    Particle,
+  ],
+  manager: [
+    TagManager,
+  ],
+)
+class HeartbeatSystem extends _$HeartbeatSystem {
   double playerRadius;
-
-  HeartbeatSystem()
-      : super(new Aspect.forAllOf([Color, Size])..exclude([Particle]));
 
   @override
   void begin() {
-    var playerEntity = tm.getEntity(playerTag);
-    playerRadius = sm[playerEntity].realRadius;
+    var playerEntity = tagManager.getEntity(playerTag);
+    playerRadius = sizeMapper[playerEntity].realRadius;
   }
 
   @override
   void processEntity(Entity entity) {
-    var c = cm[entity];
-    var s = sm[entity];
+    var c = colorMapper[entity];
+    var s = sizeMapper[entity];
 
     var factor = cos(sin(time * 3 * playerRadius / s.realRadius) +
         time * 3 * playerRadius / s.realRadius);
@@ -289,25 +311,30 @@ class HeartbeatSystem extends EntityProcessingSystem {
   }
 }
 
-class FoodCollectionSystem extends EntitySystem {
-  TagManager tm;
-  Mapper<Position> pm;
-  Mapper<Size> sm;
-  Mapper<Wobble> wm;
-  Mapper<Orientation> om;
-
-  FoodCollectionSystem()
-      : super(new Aspect.forAllOf([Food, Position, Size])..exclude(
-            [EatenBy, CollisionWith]));
-
+@Generate(
+  EntitySystem,
+  allOf: [
+    Food,
+    Position,
+    Size,
+  ],
+  exclude: [
+    EatenBy,
+    CollisionWith,
+  ],
+  manager: [
+    TagManager,
+  ],
+)
+class FoodCollectionSystem extends _$FoodCollectionSystem {
   @override
   void processEntities(Iterable<Entity> entities) {
-    var playerEntity = tm.getEntity(playerTag);
-    var playerPos = pm[playerEntity];
-    var playerSize = sm[playerEntity];
+    var playerEntity = tagManager.getEntity(playerTag);
+    var playerPos = positionMapper[playerEntity];
+    var playerSize = sizeMapper[playerEntity];
     entities.where((food) {
-      var foodPos = pm[food];
-      var foodSize = sm[food];
+      var foodPos = positionMapper[food];
+      var foodSize = sizeMapper[food];
       var distX = playerPos.x - foodPos.x;
       var distY = playerPos.y - foodPos.y;
       var distSqr = distX * distX + distY * distY;
@@ -324,34 +351,48 @@ class FoodCollectionSystem extends EntitySystem {
   bool checkProcessing() => true;
 }
 
-class EntityInteractionSystem extends EntityProcessingSystem {
-  TagManager tm;
-  Mapper<Position> pm;
-  Mapper<Size> sm;
-  Mapper<Wobble> wm;
-  Mapper<Orientation> om;
-  Mapper<CollisionWith> cm;
-  Mapper<EatenBy> ebm;
-  Mapper<Velocity> vm;
-  Mapper<CellWall> cwm;
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Position,
+    Size,
+    Wobble,
+    Orientation,
+    CollisionWith,
+    Velocity,
+  ],
+  manager: [
+    TagManager,
+  ],
+  mapper: [
+    CellWall,
+    EatenBy,
+  ],
+)
+class EntityInteractionSystem extends _$EntityInteractionSystem {
+  TagManager tagManager;
+  Mapper<Position> positionMapper;
+  Mapper<Size> sizeMapper;
+  Mapper<Wobble> wobbleMapper;
+  Mapper<Orientation> orientationMapper;
+  Mapper<CollisionWith> collisionWithMapper;
+  Mapper<Velocity> velocityMapper;
+  Mapper<EatenBy> eatenByMapper;
+  Mapper<CellWall> cellWallMapper;
 
-  double angleToSegmentFactor = circleFragments / (2 * PI);
-
-  EntityInteractionSystem()
-      : super(new Aspect.forAllOf(
-            [Position, Size, Wobble, Orientation, CollisionWith, Velocity]));
+  double angleToSegmentFactor = circleFragments / (2 * pi);
 
   @override
   void processEntity(Entity entity) {
-    var colliderEntity = cm[entity].collider;
-    var colliderPos = pm[colliderEntity];
-    var colliderSize = sm[colliderEntity];
-    var colliderWobble = wm[colliderEntity];
-    var colliderOrientation = om[colliderEntity];
-    var colliderCellWall = cwm[colliderEntity];
+    var colliderEntity = collisionWithMapper[entity].collider;
+    var colliderPos = positionMapper[colliderEntity];
+    var colliderSize = sizeMapper[colliderEntity];
+    var colliderWobble = wobbleMapper[colliderEntity];
+    var colliderOrientation = orientationMapper[colliderEntity];
+    var colliderCellWall = cellWallMapper[colliderEntity];
 
-    var entityPos = pm[entity];
-    var entitySize = sm[entity];
+    var entityPos = positionMapper[entity];
+    var entitySize = sizeMapper[entity];
     var distX = -colliderPos.x + entityPos.x;
     var distY = -colliderPos.y + entityPos.y;
     var angle = atan2(distY, distX) - colliderOrientation.angle;
@@ -363,7 +404,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
     var dist = sqrt(distX * distX + distY * distY);
     var distRelation = (radiusSum - dist) / entitySize.radius;
     if (dist < colliderSize.radius - entitySize.radius) {
-      if (!ebm.has(entity)) {
+      if (!eatenByMapper.has(entity)) {
         entity
           ..addComponent(new EatenBy(colliderEntity))
           ..removeComponent(Growing)
@@ -387,7 +428,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                     (1 - (i * i) / (fragmentRange * fragmentRange)));
       }
     } else if (dist < colliderSize.radius + entitySize.radius / 2 &&
-        !ebm.has(entity)) {
+        !eatenByMapper.has(entity)) {
       var additionalDistRelation =
           (dist + entitySize.radius - colliderSize.radius) /
               colliderSize.radius;
@@ -424,11 +465,13 @@ class EntityInteractionSystem extends EntityProcessingSystem {
                     (i * i * i).abs() /
                         (fragmentRange * fragmentRange * fragmentRange).abs());
       }
-    } else if (dist < radiusSum && !ebm.has(entity)) {
-      var v = vm[entity];
+    } else if (dist < radiusSum && !eatenByMapper.has(entity)) {
+      var v = velocityMapper[entity];
       var factor = 0.9 * world.delta;
       v.rotational = v.rotational * (1.0 - factor) -
-          vm[colliderEntity].rotational * factor * (1 - sizeRelation);
+          velocityMapper[colliderEntity].rotational *
+              factor *
+              (1 - sizeRelation);
       for (int i = -fragmentRange + 1; i <= fragmentRange; i++) {
         var fragmentIndex = (fragment + i) % circleFragments;
         var old = colliderWobble.wobbleFactor[fragmentIndex];
@@ -455,7 +498,7 @@ class EntityInteractionSystem extends EntityProcessingSystem {
       entity
         ..removeComponent(CollisionWith)
         ..changedInWorld();
-    } else if (ebm.has(entity)) {
+    } else if (eatenByMapper.has(entity)) {
       var additionalDistRelation =
           (dist + entitySize.radius - colliderSize.radius) /
               colliderSize.radius;
@@ -480,23 +523,24 @@ class EntityInteractionSystem extends EntityProcessingSystem {
   }
 }
 
-class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
-  Mapper<EatenBy> ebm;
-  Mapper<Position> pm;
-  Mapper<Size> sm;
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    EatenBy,
+    Position,
+    Size,
+  ],
+)
+class StillBeingEatenCheckerSystem extends _$StillBeingEatenCheckerSystem {
   bool changes = false;
-
-  StillBeingEatenCheckerSystem()
-      : super(new Aspect.forAllOf([EatenBy, Position, Size]));
 
   @override
   void processEntity(Entity entity) {
-    var p = pm[entity];
-    var s = sm[entity];
-    var eb = ebm[entity];
-    var ep = pm[eb.eater];
-    var es = sm[eb.eater];
+    var p = positionMapper[entity];
+    var s = sizeMapper[entity];
+    var eb = eatenByMapper[entity];
+    var ep = positionMapper[eb.eater];
+    var es = sizeMapper[eb.eater];
 
     var distX = ep.x - p.x;
     var distY = ep.y - p.y;
@@ -519,33 +563,34 @@ class StillBeingEatenCheckerSystem extends EntityProcessingSystem {
   }
 }
 
-class DigestiveSystem extends EntityProcessingSystem {
-  Mapper<EatenBy> ebm;
-  Mapper<Size> sm;
-  Mapper<Position> pm;
-  Mapper<Color> cm;
-  Mapper<Velocity> vm;
-
-  DigestiveSystem()
-      : super(new Aspect.forAllOf([EatenBy, Size, Color, Position, Velocity]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    EatenBy,
+    Size,
+    Color,
+    Position,
+    Velocity,
+  ],
+)
+class DigestiveSystem extends _$DigestiveSystem {
   @override
   void processEntity(Entity entity) {
-    var s = sm[entity];
-    var v = vm[entity];
-    var eb = ebm[entity];
-    var es = sm[eb.eater];
+    var s = sizeMapper[entity];
+    var v = velocityMapper[entity];
+    var eb = eatenByMapper[entity];
+    var es = sizeMapper[eb.eater];
 
     var remaining = s.realRadius - world.delta * es.realRadius / 20;
-    var eatenArea = PI * s.realRadius * s.realRadius;
+    var eatenArea = pi * s.realRadius * s.realRadius;
     if (remaining > 0.0) {
-      eatenArea -= PI * remaining * remaining;
+      eatenArea -= pi * remaining * remaining;
       s.realRadius = remaining;
-      var p = pm[entity];
-      var ec = cm[eb.eater];
+      var p = positionMapper[entity];
+      var ec = colorMapper[eb.eater];
       var hsl = rgbToHsl(ec.r, ec.g, ec.b);
       for (int i = 0; i < s.realRadius; i++) {
-        var angle = random.nextDouble() * 2 * PI;
+        var angle = random.nextDouble() * 2 * pi;
         world.createAndAddEntity([
           new Particle(),
           new Position(
@@ -558,38 +603,46 @@ class DigestiveSystem extends EntityProcessingSystem {
     } else {
       entity.deleteFromWorld();
     }
-    var eaterArea = PI * es.realRadius * es.realRadius + eatenArea;
-    es.realRadius = sqrt(eaterArea / PI);
+    var eaterArea = pi * es.realRadius * es.realRadius + eatenArea;
+    es.realRadius = sqrt(eaterArea / pi);
   }
 }
 
-class FoodGrowingSystem extends EntityProcessingSystem {
-  Mapper<Size> sm;
-  Mapper<Growing> gm;
-  TagManager tm;
-  Mapper<Position> pm;
-  CameraManager cm;
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Food,
+    Size,
+    Growing,
+  ],
+  mapper: [
+    Position,
+  ],
+  exclude: [
+    EatenBy,
+  ],
+  manager: [
+    TagManager,
+    CameraManager,
+  ],
+)
+class FoodGrowingSystem extends _$FoodGrowingSystem {
   double totalFood = 0.0;
-
-  FoodGrowingSystem()
-      : super(
-            new Aspect.forAllOf([Food, Size, Growing])..exclude([EatenBy]));
 
   @override
   void processEntity(Entity entity) {
-    var s = sm[entity];
-    var g = gm[entity];
+    var s = sizeMapper[entity];
+    var g = growingMapper[entity];
 
     if (g == null) {
       print('wtf?!');
       print(entity);
       print('noooo');
     }
-    var currentFood = PI * s.realRadius * s.realRadius + world.delta * g.speed;
+    var currentFood = pi * s.realRadius * s.realRadius + world.delta * g.speed;
     totalFood += currentFood;
 
-    s.realRadius = sqrt(currentFood / PI);
+    s.realRadius = sqrt(currentFood / pi);
 
     if (s.realRadius >= g.targetRadius) {
       entity
@@ -601,10 +654,15 @@ class FoodGrowingSystem extends EntityProcessingSystem {
   @override
   void end() {
     if (totalFood < 500.0) {
-      var p = pm[tm.getEntity(playerTag)];
+      var p = positionMapper[tagManager.getEntity(playerTag)];
       world.createAndAddEntity([
-        new Position(p.x - cm.width + random.nextDouble() * cm.width * 2,
-            p.y - cm.height + random.nextDouble() * cm.height * 2),
+        new Position(
+            p.x -
+                cameraManager.width +
+                random.nextDouble() * cameraManager.width * 2,
+            p.y -
+                cameraManager.height +
+                random.nextDouble() * cameraManager.height * 2),
         new Size(0.1),
         new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
         new Food(),
@@ -619,28 +677,34 @@ class FoodGrowingSystem extends EntityProcessingSystem {
   }
 }
 
-class DamacreatSpawner extends VoidEntitySystem {
-  TagManager tm;
-  GroupManager gm;
-  Mapper<Position> pm;
-  Mapper<Size> sm;
-  CameraManager cm;
-
+@Generate(
+  VoidEntitySystem,
+  mapper: [
+    Position,
+    Size,
+  ],
+  manager: [
+    TagManager,
+    GroupManager,
+    CameraManager,
+  ],
+)
+class DamacreatSpawner extends _$DamacreatSpawner {
   @override
   void processSystem() {
-    var count = gm.getEntities(damacreatGroup).length;
-    var playerEntity = tm.getEntity(playerTag);
-    var p = pm[playerEntity];
-    var s = sm[playerEntity];
-    var x = cm.width /
+    var count = groupManager.getEntities(damacreatGroup).length;
+    var playerEntity = tagManager.getEntity(playerTag);
+    var p = positionMapper[playerEntity];
+    var s = sizeMapper[playerEntity];
+    var x = cameraManager.width /
         2 *
         (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
-    var y = cm.height /
+    var y = cameraManager.height /
         2 *
         (2.5 * random.nextDouble()) *
         (random.nextBool() ? 1 : -1);
-    var angle = 2 * PI * random.nextDouble();
+    var angle = 2 * pi * random.nextDouble();
     var damacreat = world.createAndAddEntity([
       new Position(p.x + x, p.y + y),
       new Size(0.1),
@@ -655,30 +719,36 @@ class DamacreatSpawner extends VoidEntitySystem {
           (random.nextBool() ? random.nextDouble() * 0.1 : 0.0)),
       new Wobble()
     ]);
-    gm.add(damacreat, damacreatGroup);
+    groupManager.add(damacreat, damacreatGroup);
   }
 
   bool checkProcessing() =>
-      sm[tm.getEntity(playerTag)].realRadius > 21.0 &&
-      gm.getEntities(damacreatGroup).length < 500;
+      sizeMapper[tagManager.getEntity(playerTag)].realRadius > 21.0 &&
+      groupManager.getEntities(damacreatGroup).length < 500;
 }
 
-class FarAwayEntityDestructionSystem extends EntitySystem {
-  TagManager tm;
-  Mapper<Position> pm;
-  CameraManager cm;
-
-  FarAwayEntityDestructionSystem()
-      : super(
-            new Aspect.forAllOf([Position])..exclude([Particle, Lifetime]));
-
+@Generate(
+  EntitySystem,
+  allOf: [
+    Position,
+  ],
+  exclude: [
+    Particle,
+    Lifetime,
+  ],
+  manager: [
+    TagManager,
+    CameraManager,
+  ],
+)
+class FarAwayEntityDestructionSystem extends _$FarAwayEntityDestructionSystem {
   @override
   void processEntities(Iterable<Entity> entities) {
-    var playerPos = pm[tm.getEntity(playerTag)];
+    var playerPos = positionMapper[tagManager.getEntity(playerTag)];
     entities.where((entity) {
-      var p = pm[entity];
-      return (playerPos.x - p.x).abs() > cm.width * 4 ||
-          (playerPos.y - p.y).abs() > cm.height * 4;
+      var p = positionMapper[entity];
+      return (playerPos.x - p.x).abs() > cameraManager.width * 4 ||
+          (playerPos.y - p.y).abs() > cameraManager.height * 4;
     }).forEach((entity) => entity.deleteFromWorld());
   }
 
@@ -686,14 +756,16 @@ class FarAwayEntityDestructionSystem extends EntitySystem {
   bool checkProcessing() => true;
 }
 
-class WobbleSystem extends EntityProcessingSystem {
-  Mapper<Wobble> wm;
-
-  WobbleSystem() : super(new Aspect.forAllOf([Wobble]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    Wobble,
+  ],
+)
+class WobbleSystem extends _$WobbleSystem {
   @override
   void processEntity(Entity entity) {
-    var w = wm[entity];
+    var w = wobbleMapper[entity];
 
     var wobbleFactor = w.wobbleFactor;
     for (int i = 0; i < wobbleFactor.length; i++) {
@@ -702,14 +774,16 @@ class WobbleSystem extends EntityProcessingSystem {
   }
 }
 
-class CellWallSystem extends EntityProcessingSystem {
-  Mapper<CellWall> cwm;
-
-  CellWallSystem() : super(new Aspect.forAllOf([CellWall]));
-
+@Generate(
+  EntityProcessingSystem,
+  allOf: [
+    CellWall,
+  ],
+)
+class CellWallSystem extends _$CellWallSystem {
   @override
   void processEntity(Entity entity) {
-    var cw = cwm[entity];
+    var cw = cellWallMapper[entity];
 
     var strengthFactor = cw.strengthFactor;
     for (int i = 0; i < strengthFactor.length; i++) {

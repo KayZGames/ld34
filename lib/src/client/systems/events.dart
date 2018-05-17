@@ -1,13 +1,24 @@
-part of client;
+import 'dart:html';
+import 'package:gamedev_helpers/gamedev_helpers.dart';
+import 'package:ld34/shared.dart';
 
-class InputHandlingSystem extends GenericInputHandlingSystem {
+part 'events.g.dart';
+
+@Generate(
+  GenericInputHandlingSystem,
+  allOf: [
+    Thruster,
+    Player,
+  ],
+  manager: [
+    CameraManager,
+  ],
+)
+class InputHandlingSystem extends _$InputHandlingSystem {
   CanvasElement canvas;
-  Mapper<Thruster> tm;
-  CameraManager gsm;
 
   bool leftClick = false, rightClick = false, lockCamera = false;
-  InputHandlingSystem(this.canvas)
-      : super(new Aspect.forAllOf([Thruster, Player]));
+  InputHandlingSystem(this.canvas);
 
   @override
   void initialize() {
@@ -19,11 +30,11 @@ class InputHandlingSystem extends GenericInputHandlingSystem {
 
   @override
   void processEntity(Entity entity) {
-    var t = tm[entity];
+    var t = thrusterMapper[entity];
     t.left = keyState[KeyCode.F] ?? leftClick;
     t.right = keyState[KeyCode.J] ?? rightClick;
     if (isPressed(KeyCode.F4)) {
-      gsm.lockCamera = !gsm.lockCamera;
+      cameraManager.lockCamera = !cameraManager.lockCamera;
       unpress[KeyCode.F4] = true;
     }
   }
