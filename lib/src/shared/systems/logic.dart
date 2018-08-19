@@ -217,12 +217,12 @@ class ThrusterParticleEmissionSystem extends _$ThrusterParticleEmissionSystem {
     for (int i = 0; i < s.radius / 10; i++) {
       var posFactor = random.nextDouble();
       world.createAndAddEntity([
-        new Position(x1 + posFactor * (x2 - x1), y1 + posFactor * (y2 - y1)),
-        new Particle(),
-        new ThrusterParticle(),
-        new Color(rgb[0], rgb[1], rgb[2], 1.0),
-        new Lifetime(1.0 + 2.0 * random.nextDouble()),
-        new Velocity(speed * 0.9 + random.nextDouble() * 0.2,
+        Position(x1 + posFactor * (x2 - x1), y1 + posFactor * (y2 - y1)),
+        Particle(),
+        ThrusterParticle(),
+        Color(rgb[0], rgb[1], rgb[2], 1.0),
+        Lifetime(1.0 + 2.0 * random.nextDouble()),
+        Velocity(speed * 0.9 + random.nextDouble() * 0.2,
             velocityAngle - pi / 64 + random.nextDouble() * pi / 32, 0.0)
       ]);
     }
@@ -342,7 +342,7 @@ class FoodCollectionSystem extends _$FoodCollectionSystem {
       return distSqr < radiusSum * radiusSum;
     }).forEach((food) {
       food
-        ..addComponent(new CollisionWith(playerEntity))
+        ..addComponent(CollisionWith(playerEntity))
         ..changedInWorld();
     });
   }
@@ -396,14 +396,14 @@ class EntityInteractionSystem extends _$EntityInteractionSystem {
     if (dist < colliderSize.radius - entitySize.radius) {
       if (!eatenByMapper.has(entity)) {
         entity
-          ..addComponent(new EatenBy(colliderEntity))
-          ..removeComponent(Growing)
+          ..addComponent(EatenBy(colliderEntity))
+          ..removeComponent<Growing>()
           ..changedInWorld();
       }
     } else if (dist < colliderSize.radius) {
       entity
-        ..addComponent(new EatenBy(colliderEntity))
-        ..removeComponent(Growing)
+        ..addComponent(EatenBy(colliderEntity))
+        ..removeComponent<Growing>()
         ..changedInWorld();
       var additionalDistRelation =
           (dist + entitySize.radius - colliderSize.radius) /
@@ -486,7 +486,7 @@ class EntityInteractionSystem extends _$EntityInteractionSystem {
     } else if (dist > radiusSum + entitySize.radius ||
         dist > 2 * colliderSize.radius) {
       entity
-        ..removeComponent(CollisionWith)
+        ..removeComponent<CollisionWith>()
         ..changedInWorld();
     } else if (eatenByMapper.has(entity)) {
       var additionalDistRelation =
@@ -537,8 +537,8 @@ class StillBeingEatenCheckerSystem extends _$StillBeingEatenCheckerSystem {
 
     if (sqrt(distX * distX + distY * distY) > es.radius + s.radius + s.radius) {
       entity
-        ..removeComponent(EatenBy)
-        ..removeComponent(CollisionWith)
+        ..removeComponent<EatenBy>()
+        ..removeComponent<CollisionWith>()
         ..changedInWorld();
       changes = true;
     }
@@ -582,12 +582,12 @@ class DigestiveSystem extends _$DigestiveSystem {
       for (int i = 0; i < s.realRadius; i++) {
         var angle = random.nextDouble() * 2 * pi;
         world.createAndAddEntity([
-          new Particle(),
-          new Position(
+          Particle(),
+          Position(
               p.x + s.realRadius * cos(angle), p.y + s.realRadius * sin(angle)),
-          new Velocity(0.5 * v.value, v.angle, 0.0),
-          new Color.fromHsl(hsl[0], hsl[1] + 0.1, hsl[2] + 0.1, 1.0),
-          new Lifetime(0.1)
+          Velocity(0.5 * v.value, v.angle, 0.0),
+          Color.fromHsl(hsl[0], hsl[1] + 0.1, hsl[2] + 0.1, 1.0),
+          Lifetime(0.1)
         ]);
       }
     } else {
@@ -636,7 +636,7 @@ class FoodGrowingSystem extends _$FoodGrowingSystem {
 
     if (s.realRadius >= g.targetRadius) {
       entity
-        ..removeComponent(Growing)
+        ..removeComponent<Growing>()
         ..changedInWorld();
     }
   }
@@ -646,21 +646,21 @@ class FoodGrowingSystem extends _$FoodGrowingSystem {
     if (totalFood < 500.0) {
       var p = positionMapper[tagManager.getEntity(playerTag)];
       world.createAndAddEntity([
-        new Position(
+        Position(
             p.x -
                 cameraManager.width +
                 random.nextDouble() * cameraManager.width * 2,
             p.y -
                 cameraManager.height +
                 random.nextDouble() * cameraManager.height * 2),
-        new Size(0.1),
-        new Color.fromHsl(0.35, 0.4, 0.4, 1.0),
-        new Food(),
-        new Growing(
+        Size(0.1),
+        Color.fromHsl(0.35, 0.4, 0.4, 1.0),
+        Food(),
+        Growing(
             1.0 + random.nextDouble() * 10.0, 1.0 + random.nextDouble() * 4),
-        new Orientation(0.0),
-        new Velocity(0.0, 0.0, 0.0),
-        new Wobble()
+        Orientation(0.0),
+        Velocity(0.0, 0.0, 0.0),
+        Wobble()
       ]);
     }
     totalFood = 0.0;
@@ -696,18 +696,18 @@ class DamacreatSpawner extends _$DamacreatSpawner {
         (random.nextBool() ? 1 : -1);
     var angle = 2 * pi * random.nextDouble();
     var damacreat = world.createAndAddEntity([
-      new Position(p.x + x, p.y + y),
-      new Size(0.1),
-      new Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
-      new Food(),
-      new Ai(),
-      new Thruster(),
-      new Growing(s.realRadius * (0.8 + 0.8 * random.nextDouble()),
+      Position(p.x + x, p.y + y),
+      Size(0.1),
+      Color.fromHsl(random.nextDouble(), 0.8, 0.5, 0.2),
+      Food(),
+      Ai(),
+      Thruster(),
+      Growing(s.realRadius * (0.8 + 0.8 * random.nextDouble()),
           s.realRadius + 50 - count / 11),
-      new Orientation(angle),
-      new Velocity(random.nextDouble() * 25.0, angle,
+      Orientation(angle),
+      Velocity(random.nextDouble() * 25.0, angle,
           (random.nextBool() ? random.nextDouble() * 0.1 : 0.0)),
-      new Wobble()
+      Wobble()
     ]);
     groupManager.add(damacreat, damacreatGroup);
   }

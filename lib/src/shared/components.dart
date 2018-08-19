@@ -57,7 +57,7 @@ class CollisionWith extends Component {
 class Wobble extends Component {
   List<double> wobbleFactor;
   Wobble() {
-    this.wobbleFactor = new List.filled(circleFragments, 1.0);
+    this.wobbleFactor = List.filled(circleFragments, 1.0);
   }
 }
 
@@ -65,6 +65,6 @@ class CellWall extends Component {
   List<double> strengthFactor;
   double baseStrength;
   CellWall(this.baseStrength) {
-    this.strengthFactor = new List.filled(circleFragments, 1.0);
+    this.strengthFactor = List.filled(circleFragments, 1.0);
   }
 }

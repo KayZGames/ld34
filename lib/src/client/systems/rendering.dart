@@ -109,9 +109,8 @@ class PlayerRenderingSystem extends _$PlayerRenderingSystem {
 
   @override
   void updateLength(int length) {
-    items = new Float32List(length * (verticeCount + 1) * valuesPerItem);
-    indices =
-        new Uint16List(length * circleFragments * 3 * trianglePerFragment);
+    items = Float32List(length * (verticeCount + 1) * valuesPerItem);
+    indices = Uint16List(length * circleFragments * 3 * trianglePerFragment);
   }
 }
 
@@ -168,7 +167,7 @@ class CircleRenderingSystem extends _$CircleRenderingSystem {
 
   CircleRenderingSystem(RenderingContext2 gl, Aspect aspect)
       : super(gl, aspect) {
-    attribsutes = [new Attrib('aPosition', 2), new Attrib('aColor', 4)];
+    attribsutes = [Attrib('aPosition', 2), Attrib('aColor', 4)];
   }
 
   @override
@@ -225,13 +224,13 @@ class CircleRenderingSystem extends _$CircleRenderingSystem {
             .storage);
 
     bufferElements(attribsutes, items, indices);
-    gl.drawElements(TRIANGLES, indices.length, UNSIGNED_SHORT, 0);
+    gl.drawElements(WebGL.TRIANGLES, indices.length, WebGL.UNSIGNED_SHORT, 0);
   }
 
   @override
   void updateLength(int length) {
-    items = new Float32List(length * (verticeCount + 1) * valuesPerItem);
-    indices = new Uint16List(length * verticeCount * 3);
+    items = Float32List(length * (verticeCount + 1) * valuesPerItem);
+    indices = Uint16List(length * verticeCount * 3);
   }
 
   @override
@@ -255,7 +254,7 @@ class CircleRenderingSystem extends _$CircleRenderingSystem {
 class BackgroundRenderingSystemBase extends _$BackgroundRenderingSystemBase {
   double offsetX = -500000 + random.nextDouble() * 1000000.0;
   double offsetY = -500000 + random.nextDouble() * 1000000.0;
-  Float32List rgb = new Float32List.fromList([0.0, 0.0, 0.0]);
+  Float32List rgb = Float32List.fromList([0.0, 0.0, 0.0]);
   double parallaxFactor = 1.0;
 
   BackgroundRenderingSystemBase(RenderingContext2 gl) : super(gl);
@@ -267,7 +266,7 @@ class BackgroundRenderingSystemBase extends _$BackgroundRenderingSystemBase {
     var size = max(cameraManager.width, cameraManager.height) / zoom;
     var px = p.x * parallaxFactor;
     var py = p.y * parallaxFactor;
-    Float32List background = new Float32List.fromList([
+    Float32List background = Float32List.fromList([
       -size / 2 + px + offsetX,
       -size / 2 + py + offsetY,
       -size / 2 + px + offsetX,
@@ -297,7 +296,7 @@ class BackgroundRenderingSystemBase extends _$BackgroundRenderingSystemBase {
     gl.uniform3fv(gl.getUniformLocation(program, 'uRgb'), rgb);
     gl.uniform1f(gl.getUniformLocation(program, 'uTime'), time);
     buffer('aPosition', background, 2);
-    gl.drawArrays(TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(WebGL.TRIANGLE_FAN, 0, 4);
   }
 
   @override
