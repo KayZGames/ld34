@@ -624,11 +624,6 @@ class FoodGrowingSystem extends _$FoodGrowingSystem {
     var s = sizeMapper[entity];
     var g = growingMapper[entity];
 
-    if (g == null) {
-      print('wtf?!');
-      print(entity);
-      print('noooo');
-    }
     var currentFood = pi * s.realRadius * s.realRadius + world.delta * g.speed;
     totalFood += currentFood;
 
