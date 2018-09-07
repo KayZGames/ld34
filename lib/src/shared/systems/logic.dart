@@ -522,7 +522,6 @@ class EntityInteractionSystem extends _$EntityInteractionSystem {
   ],
 )
 class StillBeingEatenCheckerSystem extends _$StillBeingEatenCheckerSystem {
-  bool changes = false;
 
   @override
   void processEntity(Entity entity) {
@@ -540,15 +539,6 @@ class StillBeingEatenCheckerSystem extends _$StillBeingEatenCheckerSystem {
         ..removeComponent<EatenBy>()
         ..removeComponent<CollisionWith>()
         ..changedInWorld();
-      changes = true;
-    }
-  }
-
-  @override
-  void end() {
-    if (changes) {
-      world.processEntityChanges();
-      changes = false;
     }
   }
 }
